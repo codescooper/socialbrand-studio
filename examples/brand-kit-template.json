@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "brandName": "Ma marque",
+  "primaryColor": "#FFD600",
+  "secondaryColor": "#111111",
+  "textColor": "#111111",
+  "contact": "+33 6 00 00 00 00",
+  "website": "www.mamarque.fr",
+  "slogan": "Votre slogan ici",
+  "logo": "",
+  "template": {
+    "showLogo": true,
+    "showContact": true,
+    "footerHeight": 18,
+    "outputWidth": 1080,
+    "outputHeight": 1080,
+    "imageFit": "cover",
+    "imageZoom": 1,
+    "imageX": 0,
+    "imageY": 0,
+    "logoX": 5,
+    "logoY": 91,
+    "logoSize": 10,
+    "nameX": 17,
+    "nameY": 91,
+    "nameSize": 3.2,
+    "contactX": 95,
+    "contactY": 91,
+    "contactSize": 2.1
+  }
+}
