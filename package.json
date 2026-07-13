@@ -17,6 +17,7 @@
   "dependencies": {
     "@tauri-apps/api": "^2.11.1",
     "@vitejs/plugin-react": "latest",
+    "jszip": "^3.10.1",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
