@@ -1,0 +1,45 @@
+import type { BrandKit } from "../types/brandKit";
+
+export const TEMPLATE_LIMITS = {
+  dimension: { min: 320, max: 4096 },
+  footerHeight: { min: 8, max: 35 },
+  imageZoom: { min: 0.5, max: 3 },
+  imagePosition: { min: -100, max: 100 },
+  position: { min: 0, max: 100 },
+  logoSize: { min: 3, max: 30 },
+  nameSize: { min: 1, max: 8 },
+  contactSize: { min: 1, max: 6 },
+} as const;
+
+export const DEFAULT_BRAND_KIT: BrandKit = {
+  id: "brand-default",
+  version: 1,
+  brandName: "Ma marque",
+  primaryColor: "#FFD600",
+  secondaryColor: "#111111",
+  textColor: "#111111",
+  contact: "+225 00 00 00 00 00",
+  website: "www.mamarque.ci",
+  slogan: "Votre slogan ici",
+  logo: "",
+  template: {
+    showLogo: true,
+    showContact: true,
+    footerHeight: 18,
+    outputWidth: 1080,
+    outputHeight: 1080,
+    imageFit: "cover",
+    imageZoom: 1,
+    imageX: 0,
+    imageY: 0,
+    logoX: 5,
+    logoY: 91,
+    logoSize: 10,
+    nameX: 17,
+    nameY: 91,
+    nameSize: 3.2,
+    contactX: 95,
+    contactY: 91,
+    contactSize: 2.1,
+  },
+};
