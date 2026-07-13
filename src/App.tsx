@@ -1,6 +1,6 @@
 import {
   Bell, Box, ChevronDown, CircleHelp, Clock3, Download,
-  Check, Copy, Edit3, FileJson, Minus, Move, RotateCcw, Save, Trash2,
+  Check, Copy, Edit3, FileJson, FolderOpen, Minus, Move, RotateCcw, Save, Trash2,
   Grid2X2, Hexagon, Image, Layers3, LayoutTemplate, Palette, Plus,
   Search, Settings, Sparkles, Upload, WandSparkles, ZoomIn,
 } from "lucide-react";
@@ -8,19 +8,25 @@ import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, PointerEvent } from "react";
 import { Notifications } from "./components/Notifications";
 import { BatchPage } from "./features/batch/BatchPage";
+import { ExportsPage, HistoryPage, ProjectsPage, StoragePage } from "./features/library/LibraryPages";
+import { saveProject } from "./features/projects/projectService";
+import { db } from "./db/database";
+import { initializePersistence } from "./db/migrations";
+import { brandKitRepository } from "./db/repositories";
 import { DEFAULT_BRAND_KIT, TEMPLATE_LIMITS } from "./constants/brandKitDefaults";
 import { SOCIAL_FORMATS } from "./constants/socialFormats";
-import { loadAndRepairBrandKits, normalizeBrandKit, validateBrandKitImport } from "./services/brandKitValidation";
+import { normalizeBrandKit, validateBrandKitImport } from "./services/brandKitValidation";
 import { renderVisualBlob } from "./services/visualRenderer";
 import type { ExportType } from "./services/visualRenderer";
 import type { BrandKit } from "./types/brandKit";
 import type { AppNotification, NotificationLevel } from "./types/notification";
+import type { BatchHistoryRecord, ExportRecord, ProjectRecord } from "./types/persistence";
 import { buildExportFilename, resetFileInput, validateImageFile } from "./utils/files";
 
 const nav = [
-  [Grid2X2, "Vue d'ensemble"], [Palette, "Brand Kit"], [Box, "Produits"],
+  [Grid2X2, "Vue d'ensemble"], [FolderOpen, "Projets"], [Palette, "Brand Kit"], [Box, "Produits"],
   [LayoutTemplate, "Templates"], [Layers3, "Traitement par lot"],
-  [Download, "Exports"], [Clock3, "Historique"],
+  [Download, "Exports"], [Clock3, "Historique"], [Settings, "Stockage"],
 ] as const;
 
 
@@ -45,27 +51,25 @@ function Bee({ small = false }: { small?: boolean }) {
   );
 }
 
-const projects = [
-  { name: "Collection Été 2026", meta: "24 visuels • Instagram", color: "sunset", status: "Terminé" },
-  { name: "Promo Week-end", meta: "12 visuels • Multi-format", color: "purple", status: "Terminé" },
-  { name: "Nouveaux produits", meta: "48 visuels • En cours", color: "blue", status: "72%" },
-];
-
 export default function App() {
   const [active, setActive] = useState("Vue d'ensemble");
   const [notification, setNotification] = useState<AppNotification | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState("");
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
-  const initialBrands = useRef(loadAndRepairBrandKits(localStorage.getItem("sbs-brand-kits")));
-  const [brandKits, setBrandKits] = useState<BrandKit[]>(initialBrands.current.kits);
-  const [brandKit, setBrandKit] = useState<BrandKit>(initialBrands.current.kits[0]);
+  const [brandKits, setBrandKits] = useState<BrandKit[]>([{ ...DEFAULT_BRAND_KIT, template: { ...DEFAULT_BRAND_KIT.template } }]);
+  const [brandKit, setBrandKit] = useState<BrandKit>({ ...DEFAULT_BRAND_KIT, template: { ...DEFAULT_BRAND_KIT.template } });
+  const [projects, setProjects] = useState<ProjectRecord[]>([]);
+  const [exports, setExports] = useState<ExportRecord[]>([]);
+  const [batches, setBatches] = useState<BatchHistoryRecord[]>([]);
+  const [currentProjectId, setCurrentProjectId] = useState<string>();
   const [dragging, setDragging] = useState(false);
   const [socialPreview, setSocialPreview] = useState("instagram_post");
   const [imageLoading, setImageLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportType, setExportType] = useState<ExportType>("png");
   const [jpgQuality, setJpgQuality] = useState(0.9);
+  const [brandSaveStatus, setBrandSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const dragStart = useRef({ x: 0, y: 0, px: 0, py: 0 });
   const imageUrlRef = useRef("");
   const notificationTimer = useRef<number | null>(null);
@@ -75,12 +79,10 @@ export default function App() {
     if (!persistent) notificationTimer.current = window.setTimeout(() => setNotification(null), 4200);
   };
   useEffect(() => {
-    if (initialBrands.current.repaired) {
-      localStorage.setItem("sbs-brand-kits", JSON.stringify(initialBrands.current.kits));
-      showNotification("warning", "Certaines données locales incorrectes ont été réparées automatiquement.", true);
-    }
+    void initializePersistence().then(async (report) => { await refreshData(); if (report.migrated || report.ignored) showNotification(report.ignored ? "warning" : "success", `Migration locale : ${report.migrated} importé(s), ${report.repaired} réparé(s), ${report.ignored} ignoré(s).`, report.ignored > 0); }).catch((error) => showNotification("error", error instanceof Error ? error.message : "IndexedDB indisponible.", true));
     return () => { if (imageUrlRef.current) URL.revokeObjectURL(imageUrlRef.current); if (notificationTimer.current) window.clearTimeout(notificationTimer.current); };
   }, []);
+  const refreshData = async () => { const [kits, nextProjects, nextExports, nextBatches] = await Promise.all([brandKitRepository.list(), db.projects.orderBy("lastOpenedAt").reverse().toArray(), db.exports.orderBy("exportedAt").reverse().toArray(), db.batches.orderBy("finishedAt").reverse().toArray()]); if (kits.length) { const content = kits.map(item => item.content); setBrandKits(content); setBrandKit(current => content.find(item => item.id === current.id) || content[0]); } setProjects(nextProjects); setExports(nextExports); setBatches(nextBatches); };
   const action = (label: string) => showNotification("warning", `${label} — bientôt disponible.`);
   const openModule = (label: string) => setActive(label);
   const loadImage = async (file?: File) => {
@@ -106,21 +108,22 @@ export default function App() {
     event.preventDefault();
     void loadImage(event.dataTransfer.files?.[0]);
   };
-  const updateBrand = <K extends keyof BrandKit>(key: K, value: BrandKit[K]) => setBrandKit((kit) => ({ ...kit, [key]: value }));
-  const updateTemplate = <K extends keyof BrandKit["template"]>(key: K, value: BrandKit["template"][K]) => setBrandKit((kit) => normalizeBrandKit({ ...kit, template: { ...kit.template, [key]: value } }).brandKit);
-  const persistBrandKits = (kits: BrandKit[]) => { setBrandKits(kits); localStorage.setItem("sbs-brand-kits", JSON.stringify(kits)); };
-  const saveBrandKit = () => {
+  const updateBrand = <K extends keyof BrandKit>(key: K, value: BrandKit[K]) => { setBrandSaveStatus("idle"); setBrandKit((kit) => ({ ...kit, [key]: value })); };
+  const updateTemplate = <K extends keyof BrandKit["template"]>(key: K, value: BrandKit["template"][K]) => { setBrandSaveStatus("idle"); setBrandKit((kit) => normalizeBrandKit({ ...kit, template: { ...kit.template, [key]: value } }).brandKit); };
+  const persistBrandKits = async (kits: BrandKit[]) => { const now = new Date().toISOString(); await db.transaction("rw", db.brandKits, async () => { const existing = new Map((await db.brandKits.toArray()).map(item => [item.id, item])); await db.brandKits.bulkPut(kits.map(kit => ({ id: kit.id, version: 1 as const, name: kit.brandName, content: kit, createdAt: existing.get(kit.id)?.createdAt || now, updatedAt: now }))); const removed = [...existing.keys()].filter(id => !kits.some(kit => kit.id === id)); if (removed.length) await db.brandKits.bulkDelete(removed); }); setBrandKits(kits); };
+  const saveBrandKit = async () => {
+    setBrandSaveStatus("saving");
     const normalized = normalizeBrandKit(brandKit).brandKit;
     const exists = brandKits.some((kit) => kit.id === normalized.id);
     const next = exists ? brandKits.map((kit) => kit.id === normalized.id ? normalized : kit) : [...brandKits, normalized];
-    setBrandKit(normalized); persistBrandKits(next); showNotification("success", "Brand Kit sauvegardé dans la bibliothèque.");
+    setBrandKit(normalized); try { await persistBrandKits(next); setBrandSaveStatus("saved"); showNotification("success", "Brand Kit sauvegardé dans IndexedDB."); } catch (error) { setBrandSaveStatus("error"); showNotification("error", error instanceof Error ? error.message : "Erreur de sauvegarde.", true); }
   };
   const createBrandKit = () => setBrandKit({ ...DEFAULT_BRAND_KIT, id: crypto.randomUUID(), brandName: "Nouvelle marque", template: { ...DEFAULT_BRAND_KIT.template } });
-  const duplicateBrandKit = (kit: BrandKit) => { const copy = { ...kit, id: crypto.randomUUID(), brandName: `${kit.brandName} — copie`, template: { ...kit.template } }; persistBrandKits([...brandKits, copy]); setBrandKit(copy); };
+  const duplicateBrandKit = (kit: BrandKit) => { const copy = { ...kit, id: crypto.randomUUID(), brandName: `${kit.brandName} — copie`, template: { ...kit.template } }; void persistBrandKits([...brandKits, copy]).then(() => showNotification("success", "Brand Kit dupliqué.")); setBrandKit(copy); };
   const deleteBrandKit = (id: string) => {
     if (brandKits.length === 1) return showNotification("warning", "Au moins un Brand Kit doit rester disponible.", true);
     if (!window.confirm("Supprimer définitivement ce Brand Kit ?")) return showNotification("warning", "Suppression annulée.");
-    const next = brandKits.filter((kit) => kit.id !== id); persistBrandKits(next); if (brandKit.id === id) setBrandKit(next[0]); showNotification("success", "Brand Kit supprimé.");
+    const next = brandKits.filter((kit) => kit.id !== id); void persistBrandKits(next).then(() => showNotification("success", "Brand Kit supprimé.")); if (brandKit.id === id) setBrandKit(next[0]);
   };
   const downloadJson = (kit = brandKit, name = `${brandKit.brandName || "brand-kit"}.json`) => {
     const url = URL.createObjectURL(new Blob([JSON.stringify(kit, null, 2)], { type: "application/json" }));
@@ -134,7 +137,7 @@ export default function App() {
       if (!result) throw new Error("invalid-structure");
       let imported = result.brandKit;
       if (brandKits.some((kit) => kit.id === imported.id)) imported = { ...imported, id: crypto.randomUUID(), brandName: `${imported.brandName} — importé` };
-      persistBrandKits([...brandKits, imported]); setBrandKit(imported);
+      await persistBrandKits([...brandKits, imported]); setBrandKit(imported);
       showNotification(result.repaired ? "warning" : "success", result.repaired ? "Brand Kit importé. Certaines données ont été réparées." : "Brand Kit importé dans la bibliothèque.", result.repaired);
     } catch { showNotification("error", "JSON invalide : la structure ne correspond pas à un Brand Kit.", true); }
   };
@@ -158,10 +161,13 @@ export default function App() {
       const blob = await renderVisualBlob(image, brandKit, exportType, jpgQuality, () => { logoIgnored = true; });
       const format = SOCIAL_FORMATS[socialPreview]?.label || `${brandKit.template.outputWidth}x${brandKit.template.outputHeight}`;
       const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = buildExportFilename(brandKit.brandName, format, exportType); link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      await db.exports.add({ id: crypto.randomUUID(), projectId: currentProjectId, filename: link.download, brandKitId: brandKit.id, brandKitName: brandKit.brandName, socialFormat: socialPreview, width: brandKit.template.outputWidth, height: brandKit.template.outputHeight, format: exportType, size: blob.size, status: "success", exportedAt: new Date().toISOString() }); await refreshData();
       showNotification(logoIgnored ? "warning" : "success", logoIgnored ? "Export réussi, mais le logo illisible a été ignoré." : `Export ${exportType.toUpperCase()} réussi.`, logoIgnored);
-    } catch { showNotification("error", "Export impossible. Vérifiez l’image et réessayez.", true); }
+    } catch { try { await db.exports.add({ id: crypto.randomUUID(), projectId: currentProjectId, filename: "export-echoue", brandKitId: brandKit.id, brandKitName: brandKit.brandName, socialFormat: socialPreview, width: brandKit.template.outputWidth, height: brandKit.template.outputHeight, format: exportType, size: 0, status: "failed", exportedAt: new Date().toISOString(), errorMessage: "Rendu impossible" }); await refreshData(); } catch { /* l'erreur principale reste prioritaire */ } showNotification("error", "Export impossible. Vérifiez l’image et réessayez.", true); }
     finally { setExporting(false); }
   };
+  const saveCurrentProject = async () => { if (!imageFile) return showNotification("error", "Chargez une image avant d’enregistrer un projet.", true); const defaultName = currentProjectId ? projects.find(p => p.id === currentProjectId)?.name : imageFile.name.replace(/\.[^.]+$/, ""); const name = prompt("Nom du projet", defaultName || "Nouveau projet"); if (!name) return; try { const id = await saveProject({ id: currentProjectId, name, brandKit, socialFormat: socialPreview, exportFormat: exportType, jpgQuality, image: imageFile }); setCurrentProjectId(id); await refreshData(); showNotification("success", "Projet sauvegardé."); } catch (error) { showNotification("error", error instanceof Error ? error.message : "Projet non sauvegardé.", true); } };
+  const openProject = async (project: ProjectRecord) => { const kit = brandKits.find(item => item.id === project.brandKitId) || brandKits[0]; if (!kit) return showNotification("error", "Le Brand Kit du projet manque et aucun remplacement n’est disponible.", true); const asset = project.sourceAssetId ? await db.assets.get(project.sourceAssetId) : undefined; if (!asset) return showNotification("error", "L’image source de ce projet n’est plus disponible. Le projet reste conservé.", true); const file = new File([asset.blob], asset.name, { type: asset.mimeType }); await loadImage(file); setBrandKit({ ...kit, template: project.renderSettings }); setSocialPreview(project.socialFormat); setExportType(project.exportFormat); setJpgQuality(project.jpgQuality); setCurrentProjectId(project.id); await db.projects.update(project.id, { lastOpenedAt: new Date().toISOString() }); };
 
   const moduleCopy: Record<string, [string, string]> = {
     "Brand Kit": ["Brand Kit", "Centralisez les couleurs, logos et informations de votre marque."],
@@ -175,16 +181,16 @@ export default function App() {
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark"><Hexagon size={30} fill="#ffd600"/><span>S</span></div><div><b>SocialBrand</b><small>STUDIO</small></div></div>
       <nav>{nav.map(([Icon, label]) => <button className={active === label ? "active" : ""} onClick={() => openModule(label)} key={label}><Icon size={19}/><span>{label}</span>{label === "Traitement par lot" && <i>3</i>}</button>)}</nav>
-      <div className="sidebar-bottom"><button onClick={() => action("Aide")}><CircleHelp size={19}/>Aide & ressources</button><button onClick={() => action("Paramètres")}><Settings size={19}/>Paramètres</button></div>
+      <div className="sidebar-bottom"><button onClick={() => action("Aide")}><CircleHelp size={19}/>Aide & ressources</button><button onClick={() => openModule("Stockage")}><Settings size={19}/>Stockage</button></div>
       <div className="profile"><div className="avatar">AM</div><div><strong>Alex Morgan</strong><small>Studio créatif</small></div><ChevronDown size={16}/></div>
     </aside>
 
     <main>
-      <header><div className="search"><Search size={18}/><input aria-label="Rechercher" placeholder="Rechercher un projet, un produit..."/><kbd>⌘ K</kbd></div><button className="icon-btn" aria-label="Notifications — bientôt disponible" onClick={() => action("Notifications")}><Bell size={19}/><span/></button><button className="new-btn" onClick={() => action("Nouveau projet")}><Plus size={19}/>Nouveau projet · Bientôt disponible</button></header>
+      <header><div className="search"><Search size={18}/><input aria-label="Rechercher" placeholder="Rechercher un projet, un produit..."/><kbd>⌘ K</kbd></div><button className="icon-btn" aria-label="Notifications — bientôt disponible" onClick={() => action("Notifications")}><Bell size={19}/><span/></button><button className="new-btn" onClick={() => { setCurrentProjectId(undefined); openModule("Produits"); }}><Plus size={19}/>Nouveau projet</button></header>
 
       <div className="content">
         {active === "Brand Kit" ? <section className="brandkit-page">
-          <div className="page-heading"><div><span className="eyebrow dark-label"><Palette size={14}/> IDENTITÉ DE MARQUE</span><h1>Configurez votre Brand Kit</h1><p>Définissez vos règles une fois, puis appliquez-les à tous vos visuels.</p></div><div className="heading-actions"><label className="outline file-trigger"><Upload size={17}/>Importer JSON<input aria-label="Importer un Brand Kit JSON" type="file" accept="application/json,.json" onChange={onBrandJsonChange}/></label><button className="outline" onClick={() => downloadJson(DEFAULT_BRAND_KIT, "modele-brand-kit.json")}><FileJson size={17}/>Télécharger le modèle</button><button className="primary" onClick={saveBrandKit}><Save size={17}/>Sauvegarder</button></div></div>
+          <div className="page-heading"><div><span className="eyebrow dark-label"><Palette size={14}/> IDENTITÉ DE MARQUE</span><h1>Configurez votre Brand Kit</h1><p>Définissez vos règles une fois, puis appliquez-les à tous vos visuels.</p></div><div className="heading-actions"><span className={`save-state ${brandSaveStatus}`} aria-live="polite">{brandSaveStatus === "saving" ? "Sauvegarde…" : brandSaveStatus === "saved" ? "Sauvegardé" : brandSaveStatus === "error" ? "Erreur de sauvegarde" : "Modifications non enregistrées"}</span><label className="outline file-trigger"><Upload size={17}/>Importer JSON<input aria-label="Importer un Brand Kit JSON" type="file" accept="application/json,.json" onChange={onBrandJsonChange}/></label><button className="outline" onClick={() => downloadJson(DEFAULT_BRAND_KIT, "modele-brand-kit.json")}><FileJson size={17}/>Télécharger le modèle</button><button className="primary" disabled={brandSaveStatus === "saving"} onClick={() => void saveBrandKit()}><Save size={17}/>{brandSaveStatus === "saving" ? "Sauvegarde…" : "Sauvegarder"}</button></div></div>
           <div className="brand-library"><div className="library-heading"><div><h2>Mes Brand Kits</h2><span>{brandKits.length} marque{brandKits.length > 1 ? "s" : ""} disponible{brandKits.length > 1 ? "s" : ""}</span></div><button className="outline" onClick={createBrandKit}><Plus size={16}/>Nouveau Brand Kit</button></div><div className="brand-list">{brandKits.map((kit) => <article role="button" aria-pressed={kit.id === brandKit.id} className={kit.id === brandKit.id ? "selected" : ""} key={kit.id} onClick={() => setBrandKit(kit)} tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setBrandKit(kit); }}><div className="kit-swatch" style={{background:kit.primaryColor}}>{kit.logo ? <img src={kit.logo} alt={`Logo de ${kit.brandName}`}/> : <Hexagon size={20} fill={kit.textColor}/>}</div><div><b>{kit.brandName}</b><span>{kit.website || "Aucun site web"}</span></div>{kit.id === brandKit.id && <Check size={16} className="kit-check"/>}<div className="kit-actions"><button aria-label={`Modifier ${kit.brandName}`} onClick={(e) => {e.stopPropagation();setBrandKit(kit)}}><Edit3 size={14}/></button><button aria-label={`Dupliquer ${kit.brandName}`} onClick={(e) => {e.stopPropagation();duplicateBrandKit(kit)}}><Copy size={14}/></button><button aria-label={`Supprimer ${kit.brandName}`} onClick={(e) => {e.stopPropagation();deleteBrandKit(kit.id)}}><Trash2 size={14}/></button></div></article>)}</div></div>
           <div className="brandkit-layout"><div className="brand-form">
             <section className="form-card"><div className="card-title"><span>01</span><div><h2>Identité</h2><p>Les informations principales de votre marque.</p></div></div><div className="field-grid"><label><span>Nom de la marque</span><input value={brandKit.brandName} onChange={(e) => updateBrand("brandName", e.target.value)}/></label><label><span>Slogan</span><input value={brandKit.slogan} onChange={(e) => updateBrand("slogan", e.target.value)}/></label><label><span>Téléphone / WhatsApp</span><input value={brandKit.contact} onChange={(e) => updateBrand("contact", e.target.value)}/></label><label><span>Site web</span><input value={brandKit.website} onChange={(e) => updateBrand("website", e.target.value)}/></label></div></section>
@@ -220,10 +226,14 @@ export default function App() {
                 <div className="control-group"><b>Contacts</b><label><span>Position X</span><input type="range" min="20" max="100" value={brandKit.template.contactX} onChange={(e) => updateTemplate("contactX", Number(e.target.value))}/></label><label><span>Position Y</span><input type="range" min="5" max="98" value={brandKit.template.contactY} onChange={(e) => updateTemplate("contactY", Number(e.target.value))}/></label><label><span>Taille</span><input type="range" min="1" max="6" step=".1" value={brandKit.template.contactSize} onChange={(e) => updateTemplate("contactSize", Number(e.target.value))}/></label></div>
               </div>
               <div className="export-options"><label><span>Format d’export</span><select value={exportType} onChange={(e) => setExportType(e.target.value as ExportType)}><option value="png">PNG</option><option value="jpg">JPG</option></select></label>{exportType === "jpg" && <label><span>Qualité JPG — {Math.round(jpgQuality * 100)} %</span><input type="range" min="0.5" max="1" step="0.05" value={jpgQuality} onChange={(e) => setJpgQuality(Number(e.target.value))}/></label>}</div>
-              <button className="primary wide" disabled={!imageUrl || exporting || imageLoading} onClick={exportVisual}><Download size={18}/>{exporting ? "Export en cours…" : `Exporter en ${exportType.toUpperCase()}`}</button><button className="outline wide" onClick={saveBrandKit}><Save size={18}/>Enregistrer cette mise en page</button><button className="outline wide" onClick={resetView}><RotateCcw size={18}/>Réinitialiser le cadrage</button><label className="outline wide replace-trigger"><Upload size={18}/>Remplacer l’image<input aria-label="Remplacer l’image produit" type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={onFileChange}/></label>
+              <button className="primary wide" disabled={!imageUrl || exporting || imageLoading} onClick={exportVisual}><Download size={18}/>{exporting ? "Export en cours…" : `Exporter en ${exportType.toUpperCase()}`}</button><button className="outline wide" disabled={!imageFile} onClick={() => void saveCurrentProject()}><FolderOpen size={18}/>{currentProjectId ? "Mettre à jour le projet" : "Enregistrer comme projet"}</button><button className="outline wide" onClick={() => void saveBrandKit()}><Save size={18}/>Enregistrer cette mise en page</button><button className="outline wide" onClick={resetView}><RotateCcw size={18}/>Réinitialiser le cadrage</button><label className="outline wide replace-trigger"><Upload size={18}/>Remplacer l’image<input aria-label="Remplacer l’image produit" type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={onFileChange}/></label>
             </aside>
           </div>}
-        </section> : active === "Traitement par lot" ? <BatchPage brandKits={brandKits} initialBrandKit={brandKit} notify={showNotification}/>
+        </section> : active === "Traitement par lot" ? <BatchPage brandKits={brandKits} initialBrandKit={brandKit} notify={showNotification} onHistorySaved={() => void refreshData()}/>
+        : active === "Projets" ? <ProjectsPage onOpen={(project) => void openProject(project)} notify={showNotification}/>
+        : active === "Exports" ? <ExportsPage items={exports}/>
+        : active === "Historique" ? <HistoryPage exports={exports} batches={batches} onRefresh={() => void refreshData()} notify={showNotification}/>
+        : active === "Stockage" ? <StoragePage notify={showNotification} onRefresh={() => void refreshData()}/>
         : active !== "Vue d'ensemble" ? <section className="module-page">
           <div className="module-symbol">{active === "Brand Kit" ? <Palette/> : active === "Templates" ? <LayoutTemplate/> : active === "Traitement par lot" ? <Layers3/> : active === "Exports" ? <Download/> : <Clock3/>}</div>
           <span className="eyebrow dark-label">SOCIALBRAND STUDIO</span><h1>{moduleCopy[active]?.[0]}</h1><p>{moduleCopy[active]?.[1]}</p>
@@ -232,16 +242,16 @@ export default function App() {
         <section className="welcome"><div><span className="eyebrow"><Sparkles size={14}/> BONJOUR ALEX</span><h1>Prêt à créer<br/><em>quelque chose d’impactant ?</em></h1><p>Transformez vos photos produits en contenus qui captent l’attention.</p><div className="welcome-actions"><button className="primary" onClick={() => openModule("Templates")}><WandSparkles size={19}/>Créer un visuel</button><button className="secondary" onClick={() => openModule("Produits")}><Upload size={19}/>Importer des produits</button></div></div><div className="bee-zone"><div className="pixel p1"/><div className="pixel p2"/><div className="pixel p3"/><Bee/></div></section>
 
         <section className="stats">
-          <article><div className="stat-icon yellow"><Image size={21}/></div><div><small>Visuels créés</small><strong>1 248</strong><span>↗ 12% ce mois</span></div></article>
-          <article><div className="stat-icon dark"><Box size={21}/></div><div><small>Produits</small><strong>386</strong><span>+24 cette semaine</span></div></article>
-          <article><div className="stat-icon dark"><Palette size={21}/></div><div><small>Brand Kits</small><strong>4</strong><span>Actifs</span></div></article>
-          <article><div className="stat-icon dark"><Clock3 size={21}/></div><div><small>Temps économisé</small><strong>42h</strong><span>Ce mois-ci</span></div></article>
+          <article><div className="stat-icon yellow"><Image size={21}/></div><div><small>Exports</small><strong>{exports.length}</strong><span>Réellement générés</span></div></article>
+          <article><div className="stat-icon dark"><FolderOpen size={21}/></div><div><small>Projets</small><strong>{projects.length}</strong><span>Enregistrés localement</span></div></article>
+          <article><div className="stat-icon dark"><Palette size={21}/></div><div><small>Brand Kits</small><strong>{brandKits.length}</strong><span>Disponibles</span></div></article>
+          <article><div className="stat-icon dark"><Layers3 size={21}/></div><div><small>Lots</small><strong>{batches.length}</strong><span>Dans l’historique</span></div></article>
         </section>
 
-        <div className="section-title"><div><h2>Projets récents</h2><p>Reprenez là où vous vous êtes arrêté.</p></div><button onClick={() => action("Tous les projets")}>Voir tous les projets <span>→</span></button></div>
+        <div className="section-title"><div><h2>Projets récents</h2><p>Reprenez là où vous vous êtes arrêté.</p></div><button onClick={() => openModule("Projets")}>Voir tous les projets <span>→</span></button></div>
         <section className="projects">
-          <button className="create-card" onClick={() => openModule("Templates")}><div><Plus size={25}/></div><strong>Nouveau projet</strong><span>Commencer une nouvelle création</span></button>
-          {projects.map((p, i) => <article className="project" key={p.name}><div className={`thumb ${p.color}`}><span className="mock-logo">{i === 0 ? "SOLEIL" : i === 1 ? "NOVA" : "FORM"}</span><b>{i === 0 ? "SUMMER" : i === 1 ? "–50%" : "NEW"}</b><div className="product-shape"/></div><div className="project-info"><div><strong>{p.name}</strong><span>{p.meta}</span></div><i className={p.status === "72%" ? "progress" : "done"}>{p.status}</i></div></article>)}
+          <button className="create-card" onClick={() => { setCurrentProjectId(undefined); openModule("Produits"); }}><div><Plus size={25}/></div><strong>Nouveau projet</strong><span>Commencer une nouvelle création</span></button>
+          {projects.slice(0, 3).map((p) => <article className="project" key={p.id} tabIndex={0} onClick={() => void openProject(p)} onKeyDown={event => { if (event.key === "Enter") void openProject(p); }}><div className="thumb sunset"><span className="mock-logo">PROJET</span><b>{p.renderSettings.outputWidth}×{p.renderSettings.outputHeight}</b><div className="product-shape"/></div><div className="project-info"><div><strong>{p.name}</strong><span>Ouvert le {new Date(p.lastOpenedAt).toLocaleDateString("fr-FR")}</span></div><i className="done">Reprendre</i></div></article>)}
         </section>
 
         <section className="assistant"><div className="mini-bee"><Bee small/></div><div><span>ASSISTANT CRÉATIF</span><h3>Besoin d’un coup de pouce ?</h3><p>Beezy peut vous aider à créer une accroche, choisir vos couleurs ou composer votre visuel.</p></div><button onClick={() => action("Assistant Beezy")}><Sparkles size={17}/>Demander à Beezy</button></section>

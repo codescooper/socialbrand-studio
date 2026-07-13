@@ -9,12 +9,13 @@ import type { NotificationLevel } from "../../types/notification";
 import { decodeBatchImage, MAX_BATCH_FILES, MAX_BATCH_TOTAL_SIZE, selectNewBatchFiles } from "./batchValidation";
 import { calculateBatchProgress, processBatch } from "./batchProcessor";
 import type { BatchFile, BatchJobStatus, BatchSettings } from "./batchTypes";
+import { db } from "../../db/database";
 
-type Props = { brandKits: BrandKit[]; initialBrandKit: BrandKit; notify: (level: NotificationLevel, message: string, persistent?: boolean) => void };
+type Props = { brandKits: BrandKit[]; initialBrandKit: BrandKit; notify: (level: NotificationLevel, message: string, persistent?: boolean) => void; onHistorySaved?: () => void };
 const statusLabels: Record<BatchFile["status"], string> = { validating: "Validation", ready: "Prêt", processing: "Traitement", completed: "Réussi", failed: "Échec", rejected: "Rejeté", cancelled: "Annulé" };
 const formatBytes = (bytes: number) => bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} Ko` : `${(bytes / 1024 / 1024).toFixed(1)} Mo`;
 
-export function BatchPage({ brandKits, initialBrandKit, notify }: Props) {
+export function BatchPage({ brandKits, initialBrandKit, notify, onHistorySaved }: Props) {
   const [files, setFiles] = useState<BatchFile[]>([]);
   const [brandId, setBrandId] = useState(initialBrandKit.id);
   const [socialKey, setSocialKey] = useState("instagram_post");
@@ -55,7 +56,7 @@ export function BatchPage({ brandKits, initialBrandKit, notify }: Props) {
   const start = async () => {
     if (locked || !files.some((file) => file.status === "ready" || file.status === "completed" || file.status === "failed" || file.status === "cancelled")) return;
     const prepared = files.map((file) => ["completed", "failed", "cancelled"].includes(file.status) ? { ...file, status: "ready" as const, progress: 0, blob: undefined, error: undefined } : file);
-    setFiles(prepared); setJobStatus("running"); const controller = new AbortController(); abortRef.current = controller;
+    setFiles(prepared); setJobStatus("running"); const controller = new AbortController(); abortRef.current = controller; const startedAt = new Date().toISOString();
     let logoIgnored = false;
     const render = async (file: File, currentSettings: BatchSettings, signal: AbortSignal) => {
       const decoded = await decodeBatchImage(file, signal);
@@ -65,6 +66,7 @@ export function BatchPage({ brandKits, initialBrandKit, notify }: Props) {
     const result = await processBatch(prepared, settings, render, (updated) => setFiles(updated), controller.signal, 2);
     const wasCancelled = controller.signal.aborted; setJobStatus(wasCancelled ? "cancelled" : "completed"); abortRef.current = null;
     const finalProgress = calculateBatchProgress(result);
+    try { await db.batches.add({ id: crypto.randomUUID(), parameters: { brandKitId: settings.brandKit.id, brandKitName: settings.brandKit.brandName, socialFormat: settings.socialFormatKey, format: settings.outputType, jpgQuality: settings.jpgQuality }, total: finalProgress.total, successes: finalProgress.completed, failures: finalProgress.failed, rejected: finalProgress.rejected, cancelled: wasCancelled, startedAt, finishedAt: new Date().toISOString(), errors: result.filter(item => item.error).slice(0, 10).map(item => `${item.name}: ${item.error}`) }); onHistorySaved?.(); } catch { notify("warning", "Les images ont été traitées, mais l’historique local n’a pas pu être enregistré.", true); }
     notify(wasCancelled || finalProgress.failed || logoIgnored ? "warning" : "success", wasCancelled ? "Traitement annulé. Les réussites restent téléchargeables." : logoIgnored ? `Traitement terminé : ${finalProgress.completed} réussi(s). Le logo illisible a été ignoré.` : `Traitement terminé : ${finalProgress.completed} réussi(s), ${finalProgress.failed} échec(s).`, finalProgress.failed > 0 || logoIgnored);
     window.setTimeout(() => summaryRef.current?.focus(), 0);
   };

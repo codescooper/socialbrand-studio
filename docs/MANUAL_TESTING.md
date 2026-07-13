@@ -1,4 +1,18 @@
-# Vérification manuelle — Lots 1 et 2
+# Vérification manuelle — Lots 1, 2 et 3
+
+## Lot 3 — persistance et historique
+
+1. Créer deux Brand Kits, fermer puis rouvrir l’application et confirmer leur présence.
+2. Importer une image, ajuster le cadrage, enregistrer un projet puis le rouvrir.
+3. Mettre à jour, dupliquer et supprimer un projet après confirmation.
+4. Exporter un PNG et un JPG puis vérifier Exports et Historique.
+5. Exécuter puis annuler un traitement par lot et vérifier les deux états.
+6. Télécharger une sauvegarde complète depuis Stockage.
+7. Restaurer en fusion puis en remplacement après les confirmations.
+8. Importer un ZIP invalide et confirmer qu’aucune donnée n’est supprimée.
+9. Couper le réseau, redémarrer, ouvrir un projet et exporter un visuel.
+10. Vérifier l’estimation d’espace et nettoyer une ressource orpheline.
+11. Naviguer au clavier dans les listes, filtres, actions et confirmations.
 
 Le rendu Canvas individuel et par lot utilise le même moteur. Les calculs sont testés automatiquement ; la fidélité visuelle finale reste à vérifier dans WebView2.
 
