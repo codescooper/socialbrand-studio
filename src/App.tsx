@@ -7,6 +7,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, PointerEvent } from "react";
 import { Notifications } from "./components/Notifications";
+import { BatchPage } from "./features/batch/BatchPage";
 import { DEFAULT_BRAND_KIT, TEMPLATE_LIMITS } from "./constants/brandKitDefaults";
 import { SOCIAL_FORMATS } from "./constants/socialFormats";
 import { loadAndRepairBrandKits, normalizeBrandKit, validateBrandKitImport } from "./services/brandKitValidation";
@@ -222,8 +223,8 @@ export default function App() {
               <button className="primary wide" disabled={!imageUrl || exporting || imageLoading} onClick={exportVisual}><Download size={18}/>{exporting ? "Export en cours…" : `Exporter en ${exportType.toUpperCase()}`}</button><button className="outline wide" onClick={saveBrandKit}><Save size={18}/>Enregistrer cette mise en page</button><button className="outline wide" onClick={resetView}><RotateCcw size={18}/>Réinitialiser le cadrage</button><label className="outline wide replace-trigger"><Upload size={18}/>Remplacer l’image<input aria-label="Remplacer l’image produit" type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={onFileChange}/></label>
             </aside>
           </div>}
-        </section> : active === "Traitement par lot" ? <section className="module-page"><div className="module-symbol"><Layers3/></div><span className="eyebrow dark-label">BIENTÔT DISPONIBLE</span><h1>Traitement par lot</h1><p>Cette fonctionnalité sera stabilisée dans un prochain lot. Le parcours Brand Kit → image → export reste disponible dès maintenant.</p><button className="primary" onClick={() => openModule("Produits")}><Image size={18}/>Créer un visuel</button>
-        </section> : active !== "Vue d'ensemble" ? <section className="module-page">
+        </section> : active === "Traitement par lot" ? <BatchPage brandKits={brandKits} initialBrandKit={brandKit} notify={showNotification}/>
+        : active !== "Vue d'ensemble" ? <section className="module-page">
           <div className="module-symbol">{active === "Brand Kit" ? <Palette/> : active === "Templates" ? <LayoutTemplate/> : active === "Traitement par lot" ? <Layers3/> : active === "Exports" ? <Download/> : <Clock3/>}</div>
           <span className="eyebrow dark-label">SOCIALBRAND STUDIO</span><h1>{moduleCopy[active]?.[0]}</h1><p>{moduleCopy[active]?.[1]}</p>
           <button className="primary" onClick={() => active === "Templates" && imageUrl ? action("Éditeur de template") : openModule("Produits")}><Plus size={18}/>{active === "Templates" ? "Créer un template" : "Commencer avec une image"}</button>
