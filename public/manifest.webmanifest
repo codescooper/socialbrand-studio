@@ -1,0 +1,44 @@
+{
+  "id": "./",
+  "version": "0.2.0",
+  "name": "SocialBrand Studio",
+  "short_name": "SocialBrand",
+  "description": "Créez, déclinez et exportez des visuels produits cohérents avec votre marque.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#f5f5f2",
+  "theme_color": "#111111",
+  "categories": ["business", "design", "photo", "productivity"],
+  "icons": [
+    {
+      "src": "app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ouvrir le studio",
+      "short_name": "Studio",
+      "url": "./"
+    }
+  ]
+}

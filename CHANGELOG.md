@@ -2,6 +2,20 @@
 
 Format inspiré de Keep a Changelog. Le projet suit le versionnage sémantique.
 
+## [0.2.0] - 2026-07-14
+
+### Added
+
+- Manifeste PWA, identité d’installation jaune/noir et service worker hors connexion.
+- Proposition d’installation et indicateur de perte de connexion dans l’interface.
+- Déploiement statique automatisé vers GitHub Pages.
+
+### Changed
+
+- La branche principale cible désormais les navigateurs modernes et l’installation PWA.
+- Les liens externes utilisent l’API Web native et le stockage reste dans IndexedDB.
+- La version Desktop 0.1.0 est archivée dans `codex/archive-desktop-v0.1.0`.
+
 ## [0.1.0] - 2026-07-14
 
 ### Added

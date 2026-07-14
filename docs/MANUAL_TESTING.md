@@ -1,18 +1,22 @@
 # Vérification manuelle — Lots 1 à 4
 
-## Lot 4 — validation bêta Windows
+## Pivot PWA — validation navigateur
 
-1. Installer les paquets NSIS et MSI sur Windows 11 x64, lancer depuis le menu Démarrer, fermer et relancer.
-2. Vérifier l’onboarding au premier lancement, Ignorer, puis le relancer depuis Aide et Paramètres.
-3. Tester le clavier et le focus sur onboarding, Brand Kit, éditeur, lots, projets, historique et restauration.
-4. Vérifier la checklist avec zéro puis un projet/export/lot réel.
-5. Tester les fenêtres 1280 × 720, 1366 × 768, 1440 × 900 et 1920 × 1080 sans débordement bloquant.
-6. Modifier les paramètres PNG/JPG, qualité et concurrence, relancer puis confirmer leur persistance.
-7. Couper Internet : ouvrir l’aide, un projet, éditer et exporter.
-8. Utiliser Signaler un problème et confirmer qu’aucune donnée locale n’est préremplie.
-9. Importer images/logo/JSON/ZIP invalides et vérifier les erreurs récupérables.
-10. Installer la version par-dessus la précédente et confirmer Brand Kits, projets et historique.
-11. Sauvegarder avant désinstallation ; documenter séparément Windows 10, Windows 11 et SmartScreen.
+1. Construire avec `npm run build`, servir avec `npm run preview`, ouvrir l’URL puis installer la PWA depuis Chrome ou Edge.
+2. Fermer puis relancer depuis le menu des applications ; vérifier l’affichage `standalone`.
+3. Couper le réseau après un premier chargement et vérifier l’accueil, les Brand Kits, les projets et l’aide.
+4. Rétablir le réseau et confirmer la disparition de l’indicateur hors connexion.
+5. Vérifier le manifeste, le service worker et l’absence d’erreur dans les outils de développement.
+6. Vérifier l’onboarding au premier lancement, Ignorer, puis le relancer depuis Aide et Paramètres.
+7. Tester le clavier et le focus sur onboarding, Brand Kit, éditeur, lots, projets, historique et restauration.
+8. Vérifier la checklist avec zéro puis un projet/export/lot réel.
+9. Tester les fenêtres 1280 × 720, 1366 × 768, 1440 × 900 et 1920 × 1080 sans débordement bloquant.
+10. Modifier les paramètres PNG/JPG, qualité et concurrence, relancer puis confirmer leur persistance.
+11. Couper Internet : ouvrir l’aide, un projet, éditer et exporter.
+12. Utiliser Signaler un problème et confirmer qu’aucune donnée locale n’est préremplie.
+13. Importer images/logo/JSON/ZIP invalides et vérifier les erreurs récupérables.
+14. Installer la version par-dessus la précédente et confirmer Brand Kits, projets et historique.
+15. Sauvegarder avant de vider les données du site ; tester Chrome et Edge sur ordinateur ainsi qu’un navigateur mobile compatible.
 
 ## Lot 3 — persistance et historique
 

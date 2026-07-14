@@ -22,12 +22,3 @@ jobs:
           name: coverage
           path: coverage/
           retention-days: 14
-  rust:
-    runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
-      - run: cargo check --manifest-path src-tauri/Cargo.toml --locked

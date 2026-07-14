@@ -1,4 +1,8 @@
-# Guide utilisateur — bêta Windows
+# Guide utilisateur — PWA
+
+## Installer l’application
+
+Ouvrez SocialBrand Studio depuis son adresse HTTPS. Utilisez le bouton **Installer** proposé par l’application ou l’option d’installation du navigateur. L’application apparaît ensuite dans le menu des applications et peut s’ouvrir dans sa propre fenêtre.
 
 ## Premier visuel
 
@@ -13,8 +17,8 @@ Dans **Traitement par lot**, ajoutez jusqu’à 50 images et 200 Mo, choisissez 
 
 ## Sauvegarder ses données
 
-Dans **Paramètres**, utilisez **Sauvegarder mes données**. La restauration peut fusionner ou remplacer ; le remplacement demande deux confirmations. Sauvegardez impérativement avant désinstallation ou changement d’ordinateur.
+Dans **Paramètres**, utilisez **Sauvegarder mes données**. La restauration peut fusionner ou remplacer ; le remplacement demande deux confirmations. Sauvegardez impérativement avant de vider les données du navigateur, changer de profil, de domaine ou d’appareil.
 
 ## Stockage et hors connexion
 
-Les images de projets, Brand Kits, réglages et historiques restent dans le stockage local de l’application. L’édition et l’aide fonctionnent sans Internet. Seul **Signaler un problème** ouvre volontairement GitHub dans le navigateur.
+Les images de projets, Brand Kits, réglages et historiques restent dans IndexedDB, dans le profil du navigateur. Après un premier chargement en ligne, l’édition et l’aide fonctionnent sans Internet. Seul **Signaler un problème** ouvre volontairement GitHub dans un nouvel onglet.

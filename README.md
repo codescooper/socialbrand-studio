@@ -1,8 +1,8 @@
 # SocialBrand Studio
 
-Application desktop Windows d’AWEMA pour appliquer un Brand Kit à des photos produits, adapter le format aux réseaux sociaux et exporter des visuels cohérents, individuellement ou par lot.
+PWA locale d’AWEMA pour appliquer un Brand Kit à des photos produits, adapter le format aux réseaux sociaux et exporter des visuels cohérents, individuellement ou par lot.
 
-## Fonctionnalités de la bêta 0.1.0
+## Fonctionnalités de la PWA 0.2.0
 
 - Brand Kits importables/exportables en JSON ;
 - éditeur produit avec cadrage fidèle au rendu PNG/JPG ;
@@ -12,36 +12,43 @@ Application desktop Windows d’AWEMA pour appliquer un Brand Kit à des photos 
 - historique réel, sauvegarde et restauration ;
 - onboarding, aide et paramètres hors connexion.
 
-Les fonctions cloud, IA, collaboration et publication directe ne font pas partie de cette bêta.
+Les fonctions cloud, IA, collaboration et publication directe ne font pas partie de cette version.
+
+## Installation
+
+Ouvrez l’URL HTTPS de l’application avec Chrome, Edge ou un navigateur compatible, puis choisissez **Installer SocialBrand Studio** dans l’interface ou dans le menu du navigateur. Une fois le premier chargement terminé, le studio peut être ouvert hors connexion.
 
 ## Développement
 
-Prérequis : Node.js 22, npm, Rust stable et les outils de compilation Visual Studio 2022 avec Windows SDK.
+Prérequis : Node.js 22 et npm.
 
 ```bash
 npm ci
 npm run dev
-npm run desktop:dev
 ```
 
 Contrôles et builds :
 
 ```bash
 npm run verify
-npm run desktop:build
+npm run build
+npm run preview
 ```
 
-Les installateurs Windows sont produits dans `src-tauri/target/release/bundle/`.
+Le site statique prêt à héberger est produit dans `dist/`. Le déploiement GitHub Pages est automatisé lors d’un push sur `master`.
 
 ## Architecture et données
 
-React/TypeScript/Vite rend l’interface ; Tauri 2 fournit l’enveloppe desktop. IndexedDB/Dexie conserve Brand Kits, projets, historique, réglages et ressources nécessaires. Le rendu Canvas et JSZip fonctionnent localement : aucune image n’est envoyée à un serveur.
+React/TypeScript/Vite rend l’interface. IndexedDB/Dexie conserve Brand Kits, projets, historique, réglages et ressources nécessaires dans le profil du navigateur. Le rendu Canvas et JSZip fonctionnent localement : aucune image n’est envoyée à un serveur.
 
-Avant une désinstallation ou un changement d’ordinateur, utilisez **Paramètres → Sauvegarder mes données**. Consultez [le guide utilisateur](docs/USER_GUIDE.md), [la confidentialité](docs/PRIVACY.md) et [le dépannage](docs/TROUBLESHOOTING.md).
+Avant de supprimer les données du site ou de changer d’appareil, utilisez **Paramètres → Sauvegarder mes données**. Consultez [le guide utilisateur](docs/USER_GUIDE.md), [la confidentialité](docs/PRIVACY.md) et [le dépannage](docs/TROUBLESHOOTING.md).
+
+La version Desktop 0.1.0 reste archivée sur la branche `codex/archive-desktop-v0.1.0`.
 
 ## Limites connues
 
-- bêta Windows 10/11 x64 non signée : SmartScreen peut afficher un avertissement ;
+- l’installation PWA requiert HTTPS, sauf en développement sur localhost ;
+- le stockage est lié au navigateur, au profil et au domaine utilisés ;
 - les fichiers exportés ne sont pas conservés intégralement dans la base ;
 - listes non virtualisées à très grande échelle ;
 - sauvegarde v1 sans checksum interne cryptographique.
@@ -50,4 +57,4 @@ Avant une désinstallation ou un changement d’ordinateur, utilisez **Paramètr
 
 Voir [CONTRIBUTING.md](CONTRIBUTING.md) et [SECURITY.md](SECURITY.md). Les bugs peuvent être signalés dans les Issues GitHub sans joindre automatiquement de données locales.
 
-Copyright AWEMA. Code propriétaire ; aucune licence de redistribution n’est accordée dans cette bêta.
+Copyright AWEMA. Code propriétaire ; aucune licence de redistribution n’est accordée.

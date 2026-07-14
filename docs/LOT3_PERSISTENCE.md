@@ -27,7 +27,7 @@ Une image source est stockée comme Blob uniquement quand l’utilisateur sauveg
 
 ## Hors connexion
 
-La police Google distante a été retirée. Le stockage, l’ouverture d’un projet, le rendu et l’export n’utilisent ni API, ni CDN, ni ressource distante. Tauri demeure la cible prioritaire.
+La police Google distante a été retirée. Le stockage, l’ouverture d’un projet, le rendu et l’export n’utilisent ni API, ni CDN, ni ressource distante. La PWA installable est désormais la cible prioritaire.
 
 ## Limites connues
 

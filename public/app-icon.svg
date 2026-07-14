@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Abeille digitale SocialBrand Studio">
+  <rect width="512" height="512" rx="112" fill="#111111"/>
+  <path d="M172 202C95 151 72 236 117 277c26 24 65 9 86-23M340 202c77-51 100 34 55 75-26 24-65 9-86-23" fill="#fff8cf" stroke="#ffd600" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M219 157c-15-46-50-52-66-31M293 157c15-46 50-52 66-31" fill="none" stroke="#ffd600" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="149" cy="124" r="13" fill="#ffd600"/>
+  <circle cx="363" cy="124" r="13" fill="#ffd600"/>
+  <path d="M256 139c91 0 127 67 103 166-19 76-61 120-103 142-42-22-84-66-103-142-24-99 12-166 103-166Z" fill="#ffd600" stroke="#ffd600" stroke-width="14"/>
+  <path d="M161 236h190M157 307h198" stroke="#111111" stroke-width="46"/>
+  <circle cx="220" cy="203" r="13" fill="#111111"/>
+  <circle cx="292" cy="203" r="13" fill="#111111"/>
+  <path d="M231 221c15 13 35 13 50 0" fill="none" stroke="#111111" stroke-width="10" stroke-linecap="round"/>
+  <path d="M105 356h70v-25M407 356h-70v-25M91 388h104M421 388H317" fill="none" stroke="#ffd600" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="89" cy="388" r="12" fill="#ffd600"/>
+  <circle cx="423" cy="388" r="12" fill="#ffd600"/>
+</svg>

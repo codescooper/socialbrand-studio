@@ -1,5 +1,5 @@
 name: Rapport de bug
-description: Signaler un problème reproductible dans la bêta Windows
+description: Signaler un problème reproductible dans la PWA
 title: "[Bug] "
 labels: [bug]
 body:
@@ -9,7 +9,7 @@ body:
     validations: { required: true }
   - type: dropdown
     id: windows
-    attributes: { label: Windows, options: ["Windows 10 x64", "Windows 11 x64", "Autre"] }
+    attributes: { label: Environnement, options: ["Chrome / Edge sur ordinateur", "PWA installée sur ordinateur", "Navigateur mobile", "Autre"] }
     validations: { required: true }
   - type: textarea
     id: action

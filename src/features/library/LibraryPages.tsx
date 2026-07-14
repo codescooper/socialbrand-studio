@@ -304,7 +304,7 @@ export function StoragePage({
       <section className="settings-card settings-about">
         <div>
           <h2>À propos</h2>
-          <p>SocialBrand Studio {APP_VERSION} — Bêta Windows · Éditeur AWEMA</p>
+          <p>SocialBrand Studio {APP_VERSION} — PWA · Éditeur AWEMA</p>
         </div>
         <div>
           <button className="outline" onClick={onRestartOnboarding}>

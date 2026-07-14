@@ -2395,3 +2395,59 @@ select:focus-visible {
   outline: 3px solid #d0ad00;
   outline-offset: 2px;
 }
+.pwa-status {
+  position: fixed;
+  z-index: 120;
+  right: 22px;
+  bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(440px, calc(100vw - 44px));
+  padding: 13px 14px;
+  color: #fff;
+  background: #151515;
+  border: 1px solid #343434;
+  border-left: 5px solid #ffd600;
+  border-radius: 12px;
+  box-shadow: 0 15px 45px #0004;
+}
+.pwa-status > div {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+}
+.pwa-status strong {
+  font-size: 12px;
+}
+.pwa-status span {
+  color: #d4d4d4;
+  font-size: 9px;
+  line-height: 1.45;
+}
+.pwa-status.offline {
+  border-left-color: #ef4444;
+}
+.pwa-install {
+  border: 0;
+  border-radius: 7px;
+  padding: 9px 13px;
+  color: #111;
+  background: #ffd600;
+  font-weight: 800;
+}
+.pwa-dismiss {
+  display: grid;
+  place-items: center;
+  padding: 5px;
+  color: #aaa;
+  background: transparent;
+  border: 0;
+}
+@media (max-width: 700px) {
+  .pwa-status {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100vw - 24px);
+  }
+}

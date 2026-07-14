@@ -6,4 +6,3 @@ coverage/
 .desktop-dev*.log
 .desktop-dev*.err.log
 *.tsbuildinfo
-src-tauri/target/

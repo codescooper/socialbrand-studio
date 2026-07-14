@@ -17,7 +17,10 @@ const faq = [
   ["Pourquoi un logo n’apparaît-il pas ?", "Vérifiez son format, sa taille et l’option Afficher le logo du Brand Kit."],
   ["Comment récupérer mes données ?", "Restaurez un ZIP créé avec Sauvegarder mes données."],
   ["Puis-je changer d’ordinateur ?", "Oui, exportez une sauvegarde puis restaurez-la sur l’autre ordinateur."],
-  ["Que fait la désinstallation ?", "Le comportement dépend de Windows. Sauvegardez vos données avant toute désinstallation."],
+  [
+    "Que fait la désinstallation ?",
+    "Elle retire l’application de l’appareil, mais le navigateur peut conserver les données du site. Téléchargez une sauvegarde avant tout nettoyage.",
+  ],
   ["Quelles limites pour les lots ?", "50 images, 25 Mo chacune et 200 Mo au total."],
 ];
 export function HelpPage({ onRestartOnboarding, onReportIssue }: { onRestartOnboarding: () => void; onReportIssue: () => void }) {
@@ -64,7 +67,7 @@ export function HelpPage({ onRestartOnboarding, onReportIssue }: { onRestartOnbo
           Signaler un problème
         </button>
       </div>
-      <small>SocialBrand Studio {APP_VERSION} — Bêta Windows</small>
+      <small>SocialBrand Studio {APP_VERSION} — PWA</small>
     </section>
   );
 }

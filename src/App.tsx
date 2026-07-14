@@ -28,6 +28,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, PointerEvent } from "react";
 import { Notifications } from "./components/Notifications";
 import { Onboarding } from "./components/Onboarding";
+import { PwaStatus } from "./components/PwaStatus";
 import { BatchPage } from "./features/batch/BatchPage";
 import { ExportsPage, HistoryPage, ProjectsPage, StoragePage } from "./features/library/LibraryPages";
 import { HelpPage } from "./features/help/HelpPage";
@@ -45,7 +46,6 @@ import type { AppNotification, NotificationLevel } from "./types/notification";
 import type { BatchHistoryRecord, ExportRecord, ProjectRecord } from "./types/persistence";
 import { buildExportFilename, resetFileInput, validateImageFile } from "./utils/files";
 import { DEFAULT_PREFERENCES, APP_VERSION, isOnboardingComplete, loadPreferences, savePreferences, setOnboardingComplete, type AppPreferences } from "./services/appSettings";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { logLocalEvent } from "./services/localLogger";
 
 const nav = [
@@ -189,11 +189,7 @@ export default function App() {
   };
   const reportIssue = async () => {
     const url = `https://github.com/codescooper/socialbrand-studio/issues/new?template=bug_report.yml&version=${APP_VERSION}`;
-    try {
-      await openUrl(url);
-    } catch {
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
+    window.open(url, "_blank", "noopener,noreferrer");
     showNotification("warning", "Le formulaire de bug s’ouvre dans votre navigateur. Aucune donnée locale n’est envoyée.");
   };
   const loadImage = async (file?: File) => {
@@ -492,8 +488,8 @@ export default function App() {
         <div className="profile local-profile">
           <div className="avatar">S</div>
           <div>
-            <strong>Mode local</strong>
-            <small>Version {APP_VERSION} · Hors connexion</small>
+            <strong>Application Web</strong>
+            <small>Version {APP_VERSION} · PWA locale</small>
           </div>
         </div>
       </aside>
@@ -1268,6 +1264,7 @@ export default function App() {
         </div>
       </main>
       <Notifications notification={notification} onDismiss={() => setNotification(null)} />
+      <PwaStatus />
       {showOnboarding && <Onboarding onClose={(completed) => void closeOnboarding(completed)} />}
     </div>
   );
