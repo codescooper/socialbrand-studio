@@ -1,0 +1,13 @@
+name: Amélioration
+description: Proposer une amélioration sans données personnelles
+title: "[Amélioration] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes: { label: Besoin, description: "Quel problème souhaitez-vous résoudre ?" }
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes: { label: Proposition }
+    validations: { required: true }

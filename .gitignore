@@ -1,5 +1,6 @@
 node_modules/
 dist/
+coverage/
 .dev-server.log
 .dev-server.err.log
 .desktop-dev*.log

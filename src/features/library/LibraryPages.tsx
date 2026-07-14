@@ -1,31 +1,352 @@
 import { useEffect, useMemo, useState } from "react";
-import { Clock3, Copy, Database, Download, FolderOpen, HardDrive, Search, Trash2, Upload } from "lucide-react";
+import { Clock3, Copy, Database, Download, FolderOpen, HardDrive, RotateCcw, Search, Trash2, Upload } from "lucide-react";
 import { db } from "../../db/database";
 import type { BatchHistoryRecord, ExportRecord, ProjectRecord } from "../../types/persistence";
 import { duplicateProject, deleteProject } from "../projects/projectService";
 import { cleanOrphanAssets, estimateStorage } from "../storage/storageService";
 import { exportBackup, importBackup } from "../backup/backupService";
+import { APP_VERSION, DEFAULT_PREFERENCES, type AppPreferences } from "../../services/appSettings";
 
 type Notify = (level: "success" | "warning" | "error", message: string, persistent?: boolean) => void;
-const bytes = (n: number) => n < 1024 * 1024 ? `${Math.round(n / 1024)} Ko` : `${(n / 1024 / 1024).toFixed(1)} Mo`;
+const bytes = (n: number) => (n < 1024 * 1024 ? `${Math.round(n / 1024)} Ko` : `${(n / 1024 / 1024).toFixed(1)} Mo`);
 export function ProjectsPage({ onOpen, notify }: { onOpen: (project: ProjectRecord) => void; notify: Notify }) {
-  const [items, setItems] = useState<ProjectRecord[]>([]); const [query, setQuery] = useState(""); const reload = () => void db.projects.orderBy("lastOpenedAt").reverse().toArray().then(setItems); useEffect(reload, []);
-  const shown = items.filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
-  return <Library title="Projets" icon={<FolderOpen/>} intro="Retrouvez et reprenez vos visuels enregistrés."><SearchBox value={query} onChange={setQuery}/>{shown.length ? <div className="library-list">{shown.map(item => <article key={item.id} tabIndex={0}><div><b>{item.name}</b><span>Modifié le {new Date(item.updatedAt).toLocaleString("fr-FR")}</span></div><div><button aria-label={`Ouvrir ${item.name}`} onClick={() => onOpen(item)}><FolderOpen size={16}/>Ouvrir</button><button aria-label={`Dupliquer ${item.name}`} onClick={() => void duplicateProject(item).then(() => { reload(); notify("success", "Projet dupliqué."); })}><Copy size={16}/></button><button aria-label={`Supprimer ${item.name}`} onClick={() => { if (confirm(`Supprimer définitivement « ${item.name} » ?`)) void deleteProject(item.id).then(() => { reload(); notify("success", "Projet supprimé."); }); }}><Trash2 size={16}/></button></div></article>)}</div> : <Empty text="Aucun projet enregistré."/>}</Library>;
+  const [items, setItems] = useState<ProjectRecord[]>([]);
+  const [query, setQuery] = useState("");
+  const reload = () => void db.projects.orderBy("lastOpenedAt").reverse().toArray().then(setItems);
+  useEffect(reload, []);
+  const shown = items.filter((item) => item.name.toLowerCase().includes(query.toLowerCase()));
+  return (
+    <Library title="Projets" icon={<FolderOpen />} intro="Retrouvez et reprenez vos visuels enregistrés.">
+      <SearchBox value={query} onChange={setQuery} />
+      {shown.length ? (
+        <div className="library-list">
+          {shown.map((item) => (
+            <article key={item.id} tabIndex={0}>
+              <div>
+                <b>{item.name}</b>
+                <span>Modifié le {new Date(item.updatedAt).toLocaleString("fr-FR")}</span>
+              </div>
+              <div>
+                <button aria-label={`Ouvrir ${item.name}`} onClick={() => onOpen(item)}>
+                  <FolderOpen size={16} />
+                  Ouvrir
+                </button>
+                <button
+                  aria-label={`Dupliquer ${item.name}`}
+                  onClick={() =>
+                    void duplicateProject(item).then(() => {
+                      reload();
+                      notify("success", "Projet dupliqué.");
+                    })
+                  }
+                >
+                  <Copy size={16} />
+                </button>
+                <button
+                  aria-label={`Supprimer ${item.name}`}
+                  onClick={() => {
+                    if (confirm(`Supprimer définitivement « ${item.name} » ?`))
+                      void deleteProject(item.id).then(() => {
+                        reload();
+                        notify("success", "Projet supprimé.");
+                      });
+                  }}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <Empty text="Aucun projet enregistré." />
+      )}
+    </Library>
+  );
 }
 export function HistoryPage({ exports, batches, onRefresh, notify }: { exports: ExportRecord[]; batches: BatchHistoryRecord[]; onRefresh: () => void; notify: Notify }) {
-  const [filter, setFilter] = useState("all"); const [query, setQuery] = useState("");
-  const rows = useMemo(() => [...exports.map(x => ({ id: x.id, type: "export", name: x.filename, status: x.status, date: x.exportedAt, detail: `${x.width} × ${x.height} · ${x.format.toUpperCase()}` })), ...batches.map(x => ({ id: x.id, type: "batch", name: x.zipName || "Traitement par lot", status: x.cancelled ? "cancelled" : x.failures ? "failed" : "success", date: x.finishedAt, detail: `${x.successes}/${x.total} réussites` }))].filter(x => (filter === "all" || x.type === filter || x.status === filter) && x.name.toLowerCase().includes(query.toLowerCase())).sort((a,b) => b.date.localeCompare(a.date)), [exports, batches, filter, query]);
-  const remove = async (id: string, type: string) => { if (!confirm("Supprimer cette entrée d’historique ?")) return; await (type === "export" ? db.exports : db.batches).delete(id); onRefresh(); notify("success", "Entrée supprimée."); };
-  return <Library title="Historique" icon={<Clock3/>} intro="Les actions réellement effectuées, succès comme erreurs."><div className="library-tools"><SearchBox value={query} onChange={setQuery}/><label><span>Filtrer</span><select value={filter} onChange={e => setFilter(e.target.value)}><option value="all">Tous</option><option value="export">Exports individuels</option><option value="batch">Traitements par lot</option><option value="success">Réussites</option><option value="failed">Erreurs</option><option value="cancelled">Annulations</option></select></label><button className="outline" onClick={() => { if (confirm("Nettoyer tout l’historique ?")) void db.transaction("rw", db.exports, db.batches, async () => { await db.exports.clear(); await db.batches.clear(); }).then(() => { onRefresh(); notify("success", "Historique nettoyé."); }); }}><Trash2 size={16}/>Tout nettoyer</button></div>{rows.length ? <div className="library-list">{rows.map(row => <article key={`${row.type}-${row.id}`}><div><b>{row.name}</b><span>{row.detail} · {new Date(row.date).toLocaleString("fr-FR")}</span></div><div><i className={row.status}>{row.status === "success" ? "Réussi" : row.status === "failed" ? "Erreur" : "Annulé"}</i><button aria-label={`Supprimer ${row.name}`} onClick={() => void remove(row.id, row.type)}><Trash2 size={16}/></button></div></article>)}</div> : <Empty text="Aucune opération dans l’historique."/>}</Library>;
+  const [filter, setFilter] = useState("all");
+  const [query, setQuery] = useState("");
+  const rows = useMemo(
+    () =>
+      [
+        ...exports.map((x) => ({
+          id: x.id,
+          type: "export",
+          name: x.filename,
+          status: x.status,
+          date: x.exportedAt,
+          detail: `${x.width} × ${x.height} · ${x.format.toUpperCase()}`,
+        })),
+        ...batches.map((x) => ({
+          id: x.id,
+          type: "batch",
+          name: x.zipName || "Traitement par lot",
+          status: x.cancelled ? "cancelled" : x.failures ? "failed" : "success",
+          date: x.finishedAt,
+          detail: `${x.successes}/${x.total} réussites`,
+        })),
+      ]
+        .filter((x) => (filter === "all" || x.type === filter || x.status === filter) && x.name.toLowerCase().includes(query.toLowerCase()))
+        .sort((a, b) => b.date.localeCompare(a.date)),
+    [exports, batches, filter, query],
+  );
+  const remove = async (id: string, type: string) => {
+    if (!confirm("Supprimer cette entrée d’historique ?")) return;
+    await (type === "export" ? db.exports : db.batches).delete(id);
+    onRefresh();
+    notify("success", "Entrée supprimée.");
+  };
+  return (
+    <Library title="Historique" icon={<Clock3 />} intro="Les actions réellement effectuées, succès comme erreurs.">
+      <div className="library-tools">
+        <SearchBox value={query} onChange={setQuery} />
+        <label>
+          <span>Filtrer</span>
+          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="all">Tous</option>
+            <option value="export">Exports individuels</option>
+            <option value="batch">Traitements par lot</option>
+            <option value="success">Réussites</option>
+            <option value="failed">Erreurs</option>
+            <option value="cancelled">Annulations</option>
+          </select>
+        </label>
+        <button
+          className="outline"
+          onClick={() => {
+            if (confirm("Nettoyer tout l’historique ?"))
+              void db
+                .transaction("rw", db.exports, db.batches, async () => {
+                  await db.exports.clear();
+                  await db.batches.clear();
+                })
+                .then(() => {
+                  onRefresh();
+                  notify("success", "Historique nettoyé.");
+                });
+          }}
+        >
+          <Trash2 size={16} />
+          Tout nettoyer
+        </button>
+      </div>
+      {rows.length ? (
+        <div className="library-list">
+          {rows.map((row) => (
+            <article key={`${row.type}-${row.id}`}>
+              <div>
+                <b>{row.name}</b>
+                <span>
+                  {row.detail} · {new Date(row.date).toLocaleString("fr-FR")}
+                </span>
+              </div>
+              <div>
+                <i className={row.status}>{row.status === "success" ? "Réussi" : row.status === "failed" ? "Erreur" : "Annulé"}</i>
+                <button aria-label={`Supprimer ${row.name}`} onClick={() => void remove(row.id, row.type)}>
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <Empty text="Aucune opération dans l’historique." />
+      )}
+    </Library>
+  );
 }
-export function ExportsPage({ items }: { items: ExportRecord[] }) { return <Library title="Exports" icon={<Download/>} intro="Les fichiers réellement générés par SocialBrand Studio.">{items.length ? <div className="library-list">{items.map(item => <article key={item.id}><div><b>{item.filename}</b><span>{item.brandKitName} · {item.width} × {item.height} · {bytes(item.size)} · {new Date(item.exportedAt).toLocaleString("fr-FR")}</span></div><em>Fichier non conservé localement — rouvrez le projet pour le régénérer.</em></article>)}</div> : <Empty text="Aucun export effectué."/>}</Library>; }
-export function StoragePage({ notify, onRefresh }: { notify: Notify; onRefresh: () => void }) {
-  const [usage, setUsage] = useState({ usage: 0, quota: 0 }); const refresh = () => void estimateStorage().then(setUsage); useEffect(refresh, []);
-  const backup = async () => { const blob = await exportBackup(); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `socialbrand-backup-${new Date().toISOString().slice(0,10)}.zip`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 0); notify("success", "Sauvegarde complète téléchargée."); };
-  const restore = async (file?: File) => { if (!file) return; const replace = confirm("OK : remplacer toutes les données actuelles.\nAnnuler : fusionner sans les effacer."); if (replace && !confirm("CONFIRMATION : les données actuelles seront remplacées après validation complète. Continuer ?")) return; try { const report = await importBackup(file, replace ? "replace" : "merge"); notify("success", `Restauration terminée : ${report.imported} élément(s), ${report.remapped} relation(s) remappée(s).`); onRefresh(); refresh(); } catch (e) { notify("error", e instanceof Error ? e.message : "Restauration impossible. Les données actuelles sont conservées.", true); } };
-  return <Library title="Stockage et sauvegarde" icon={<HardDrive/>} intro="Toutes les données restent sur cet appareil et fonctionnent hors connexion."><div className="storage-meter"><b>{bytes(usage.usage)} utilisés</b><span>{usage.quota ? `sur ${bytes(usage.quota)} (${((usage.usage / usage.quota) * 100).toFixed(2)} %)` : "Quota non communiqué par le système"}</span><progress max={usage.quota || 1} value={usage.usage}/></div><div className="storage-actions"><button className="primary" onClick={() => void backup()}><Database size={17}/>Sauvegarder mes données</button><label className="outline file-trigger"><Upload size={17}/>Restaurer une sauvegarde<input type="file" accept=".zip,application/zip" onChange={e => { void restore(e.currentTarget.files?.[0]); e.currentTarget.value = ""; }}/></label><button className="outline" onClick={() => void cleanOrphanAssets().then(count => { refresh(); notify("success", `${count} ressource(s) orpheline(s) supprimée(s).`); })}><Trash2 size={17}/>Nettoyer les ressources orphelines</button></div></Library>;
+export function ExportsPage({ items }: { items: ExportRecord[] }) {
+  return (
+    <Library title="Exports" icon={<Download />} intro="Les fichiers réellement générés par SocialBrand Studio.">
+      {items.length ? (
+        <div className="library-list">
+          {items.map((item) => (
+            <article key={item.id}>
+              <div>
+                <b>{item.filename}</b>
+                <span>
+                  {item.brandKitName} · {item.width} × {item.height} · {bytes(item.size)} · {new Date(item.exportedAt).toLocaleString("fr-FR")}
+                </span>
+              </div>
+              <em>Fichier non conservé localement — rouvrez le projet pour le régénérer.</em>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <Empty text="Aucun export effectué." />
+      )}
+    </Library>
+  );
 }
-function Library({ title, icon, intro, children }: { title: string; icon: React.ReactNode; intro: string; children: React.ReactNode }) { return <section className="library-page"><div className="page-heading"><div><span className="eyebrow dark-label">{icon} BIBLIOTHÈQUE LOCALE</span><h1>{title}</h1><p>{intro}</p></div></div>{children}</section>; }
-function SearchBox({ value, onChange }: { value: string; onChange: (value: string) => void }) { return <label className="search-box"><Search size={16}/><span className="sr-only">Rechercher par nom</span><input value={value} onChange={e => onChange(e.target.value)} placeholder="Rechercher par nom…"/></label>; }
-function Empty({ text }: { text: string }) { return <div className="library-empty"><Database size={28}/><b>{text}</b><span>Votre prochaine création apparaîtra automatiquement ici.</span></div>; }
+export function StoragePage({
+  notify,
+  onRefresh,
+  preferences,
+  onPreferencesChange,
+  onRestartOnboarding,
+  onOpenHelp,
+}: {
+  notify: Notify;
+  onRefresh: () => void;
+  preferences: AppPreferences;
+  onPreferencesChange: (value: AppPreferences) => void;
+  onRestartOnboarding: () => void;
+  onOpenHelp: () => void;
+}) {
+  const [usage, setUsage] = useState({ usage: 0, quota: 0 });
+  const [draftQuality, setDraftQuality] = useState(preferences.defaultJpgQuality);
+  const refresh = () => void estimateStorage().then(setUsage);
+  useEffect(refresh, []);
+  useEffect(() => setDraftQuality(preferences.defaultJpgQuality), [preferences.defaultJpgQuality]);
+  const backup = async () => {
+    const blob = await exportBackup();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `socialbrand-backup-${new Date().toISOString().slice(0, 10)}.zip`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    notify("success", "Sauvegarde complète téléchargée.");
+  };
+  const restore = async (file?: File) => {
+    if (!file) return;
+    const replace = confirm("OK : remplacer toutes les données actuelles.\nAnnuler : fusionner sans les effacer.");
+    if (replace && !confirm("CONFIRMATION : les données actuelles seront remplacées après validation complète. Continuer ?")) return;
+    try {
+      const report = await importBackup(file, replace ? "replace" : "merge");
+      notify("success", `Restauration terminée : ${report.imported} élément(s), ${report.remapped} relation(s) remappée(s).`);
+      onRefresh();
+      refresh();
+    } catch (e) {
+      notify("error", e instanceof Error ? e.message : "Restauration impossible. Les données actuelles sont conservées.", true);
+    }
+  };
+  return (
+    <Library title="Paramètres" icon={<HardDrive />} intro="Des réglages réellement appliqués et toutes vos données locales.">
+      <section className="settings-card">
+        <h2>Valeurs par défaut</h2>
+        <div className="settings-grid">
+          <label>
+            <span>Format d’export</span>
+            <select value={preferences.defaultExportFormat} onChange={(event) => onPreferencesChange({ ...preferences, defaultExportFormat: event.target.value as "png" | "jpg" })}>
+              <option value="png">PNG</option>
+              <option value="jpg">JPG</option>
+            </select>
+          </label>
+          <label>
+            <span>Qualité JPG — {Math.round(draftQuality * 100)} %</span>
+            <input
+              type="range"
+              min="0.5"
+              max="1"
+              step="0.05"
+              value={draftQuality}
+              onChange={(event) => setDraftQuality(Number(event.target.value))}
+              onPointerUp={() => onPreferencesChange({ ...preferences, defaultJpgQuality: draftQuality })}
+              onKeyUp={() => onPreferencesChange({ ...preferences, defaultJpgQuality: draftQuality })}
+              onBlur={() => onPreferencesChange({ ...preferences, defaultJpgQuality: draftQuality })}
+            />
+          </label>
+          <label>
+            <span>Concurrence des lots</span>
+            <select value={preferences.batchConcurrency} onChange={(event) => onPreferencesChange({ ...preferences, batchConcurrency: Number(event.target.value) as 1 | 2 | 3 })}>
+              <option value="1">1 image — ordinateur modeste</option>
+              <option value="2">2 images — recommandé</option>
+              <option value="3">3 images — ordinateur rapide</option>
+            </select>
+          </label>
+        </div>
+        <button className="outline" onClick={() => onPreferencesChange(DEFAULT_PREFERENCES)}>
+          <RotateCcw size={16} />
+          Restaurer les valeurs par défaut
+        </button>
+      </section>
+      <section className="settings-card">
+        <h2>Stockage et sauvegarde</h2>
+        <div className="storage-meter">
+          <b>{bytes(usage.usage)} utilisés</b>
+          <span>{usage.quota ? `sur ${bytes(usage.quota)} (${((usage.usage / usage.quota) * 100).toFixed(2)} %)` : "Quota non communiqué par le système"}</span>
+          <progress max={usage.quota || 1} value={usage.usage} />
+        </div>
+        <div className="storage-actions">
+          <button className="primary" onClick={() => void backup()}>
+            <Database size={17} />
+            Sauvegarder mes données
+          </button>
+          <label className="outline file-trigger">
+            <Upload size={17} />
+            Restaurer une sauvegarde
+            <input
+              aria-label="Restaurer une sauvegarde ZIP"
+              type="file"
+              accept=".zip,application/zip"
+              onChange={(e) => {
+                void restore(e.currentTarget.files?.[0]);
+                e.currentTarget.value = "";
+              }}
+            />
+          </label>
+          <button
+            className="outline"
+            onClick={() =>
+              void cleanOrphanAssets().then((count) => {
+                refresh();
+                notify("success", `${count} ressource(s) orpheline(s) supprimée(s).`);
+              })
+            }
+          >
+            <Trash2 size={17} />
+            Nettoyer les ressources orphelines
+          </button>
+        </div>
+      </section>
+      <section className="settings-card settings-about">
+        <div>
+          <h2>À propos</h2>
+          <p>SocialBrand Studio {APP_VERSION} — Bêta Windows · Éditeur AWEMA</p>
+        </div>
+        <div>
+          <button className="outline" onClick={onRestartOnboarding}>
+            Relancer l’onboarding
+          </button>
+          <button className="outline" onClick={onOpenHelp}>
+            Aide, confidentialité et support
+          </button>
+        </div>
+      </section>
+    </Library>
+  );
+}
+function Library({ title, icon, intro, children }: { title: string; icon: React.ReactNode; intro: string; children: React.ReactNode }) {
+  return (
+    <section className="library-page">
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow dark-label">{icon} BIBLIOTHÈQUE LOCALE</span>
+          <h1>{title}</h1>
+          <p>{intro}</p>
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+function SearchBox({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="search-box">
+      <Search size={16} />
+      <span className="sr-only">Rechercher par nom</span>
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder="Rechercher par nom…" />
+    </label>
+  );
+}
+function Empty({ text }: { text: string }) {
+  return (
+    <div className="library-empty">
+      <Database size={28} />
+      <b>{text}</b>
+      <span>Votre prochaine création apparaîtra automatiquement ici.</span>
+    </div>
+  );
+}

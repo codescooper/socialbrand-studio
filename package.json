@@ -7,29 +7,40 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --pretty false",
+    "lint": "eslint . --max-warnings 0",
+    "format:check": "prettier --check .",
+    "version:check": "node scripts/check-versions.mjs",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "preview": "vite preview",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "verify": "npm run version:check && npm run typecheck && npm run lint && npm run format:check && npm run test:coverage && npm run build"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.11.1",
-    "@vitejs/plugin-react": "latest",
-    "dexie": "^4.4.4",
-    "jszip": "^3.10.1",
-    "lucide-react": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "typescript": "latest",
-    "vite": "latest"
+    "@tauri-apps/api": "2.11.1",
+    "@tauri-apps/plugin-opener": "2.5.4",
+    "dexie": "4.4.4",
+    "jszip": "3.10.1",
+    "lucide-react": "1.24.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.11.4",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "fake-indexeddb": "^6.2.5",
-    "vitest": "^4.1.10"
+    "@eslint/js": "9.39.2",
+    "@tauri-apps/cli": "2.11.4",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "@vitest/coverage-v8": "4.1.10",
+    "eslint": "9.39.2",
+    "fake-indexeddb": "6.2.5",
+    "prettier": "3.8.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.53.1",
+    "vite": "8.1.4",
+    "vitest": "4.1.10"
   }
 }

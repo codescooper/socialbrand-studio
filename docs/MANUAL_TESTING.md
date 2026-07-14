@@ -1,4 +1,18 @@
-# Vérification manuelle — Lots 1, 2 et 3
+# Vérification manuelle — Lots 1 à 4
+
+## Lot 4 — validation bêta Windows
+
+1. Installer les paquets NSIS et MSI sur Windows 11 x64, lancer depuis le menu Démarrer, fermer et relancer.
+2. Vérifier l’onboarding au premier lancement, Ignorer, puis le relancer depuis Aide et Paramètres.
+3. Tester le clavier et le focus sur onboarding, Brand Kit, éditeur, lots, projets, historique et restauration.
+4. Vérifier la checklist avec zéro puis un projet/export/lot réel.
+5. Tester les fenêtres 1280 × 720, 1366 × 768, 1440 × 900 et 1920 × 1080 sans débordement bloquant.
+6. Modifier les paramètres PNG/JPG, qualité et concurrence, relancer puis confirmer leur persistance.
+7. Couper Internet : ouvrir l’aide, un projet, éditer et exporter.
+8. Utiliser Signaler un problème et confirmer qu’aucune donnée locale n’est préremplie.
+9. Importer images/logo/JSON/ZIP invalides et vérifier les erreurs récupérables.
+10. Installer la version par-dessus la précédente et confirmer Brand Kits, projets et historique.
+11. Sauvegarder avant désinstallation ; documenter séparément Windows 10, Windows 11 et SmartScreen.
 
 ## Lot 3 — persistance et historique
 

@@ -32,7 +32,10 @@ describe("Brand Kit validation", () => {
   });
 
   it("borne dimensions, positions et zoom", () => {
-    const result = normalizeBrandKit({ ...DEFAULT_BRAND_KIT, template: { ...DEFAULT_BRAND_KIT.template, outputWidth: 10, outputHeight: 99999, imageZoom: 30, imageX: -999, logoSize: Number.NaN } });
+    const result = normalizeBrandKit({
+      ...DEFAULT_BRAND_KIT,
+      template: { ...DEFAULT_BRAND_KIT.template, outputWidth: 10, outputHeight: 99999, imageZoom: 30, imageX: -999, logoSize: Number.NaN },
+    });
     expect(result.brandKit.template.outputWidth).toBe(TEMPLATE_LIMITS.dimension.min);
     expect(result.brandKit.template.outputHeight).toBe(TEMPLATE_LIMITS.dimension.max);
     expect(result.brandKit.template.imageZoom).toBe(TEMPLATE_LIMITS.imageZoom.max);

@@ -12,16 +12,16 @@ L'abeille symbolise la rapidité, le travail automatisé, l'organisation et la p
 
 ## Palette principale
 
-| Rôle | Couleur | Hex |
-|---|---|---|
-| Jaune principal | Jaune électrique | `#FFD600` |
-| Jaune interactif | Jaune chaud | `#FFC400` |
-| Noir principal | Noir profond | `#0D0D0D` |
-| Surface sombre | Anthracite | `#181818` |
-| Surface claire | Blanc cassé | `#FFFDF5` |
-| Texte secondaire | Gris neutre | `#A3A3A3` |
-| Succès | Vert | `#22C55E` |
-| Erreur | Rouge | `#EF4444` |
+| Rôle             | Couleur          | Hex       |
+| ---------------- | ---------------- | --------- |
+| Jaune principal  | Jaune électrique | `#FFD600` |
+| Jaune interactif | Jaune chaud      | `#FFC400` |
+| Noir principal   | Noir profond     | `#0D0D0D` |
+| Surface sombre   | Anthracite       | `#181818` |
+| Surface claire   | Blanc cassé      | `#FFFDF5` |
+| Texte secondaire | Gris neutre      | `#A3A3A3` |
+| Succès           | Vert             | `#22C55E` |
+| Erreur           | Rouge            | `#EF4444` |
 
 Le jaune sert aux actions principales, aux sélections, aux indicateurs de progression et aux détails de marque. Le noir structure l'interface et garantit une apparence professionnelle. Les textes posés sur le jaune utilisent prioritairement le noir pour conserver un contraste élevé.
 
