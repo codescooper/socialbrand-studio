@@ -17,6 +17,7 @@
   "dependencies": {
     "@tauri-apps/api": "^2.11.1",
     "@vitejs/plugin-react": "latest",
+    "dexie": "^4.4.4",
     "jszip": "^3.10.1",
     "lucide-react": "latest",
     "react": "latest",
@@ -28,6 +29,7 @@
     "@tauri-apps/cli": "^2.11.4",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "fake-indexeddb": "^6.2.5",
     "vitest": "^4.1.10"
   }
 }
