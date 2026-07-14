@@ -3,7 +3,7 @@ import { buildExportFilename, safeFilename, validateImageFile } from "./files";
 
 describe("file utilities", () => {
   it("génère un nom de fichier sûr", () => {
-    expect(safeFilename('Ma Marque: Côte d\'Ivoire / Test')).toBe("ma-marque-cote-d-ivoire-test");
+    expect(safeFilename("Ma Marque: Côte d'Ivoire / Test")).toBe("ma-marque-cote-d-ivoire-test");
     expect(buildExportFilename("Ma Marque", "Instagram — Post", "jpg", new Date("2026-07-12T10:00:00Z"))).toBe("ma-marque-instagram-post-2026-07-12.jpg");
   });
 

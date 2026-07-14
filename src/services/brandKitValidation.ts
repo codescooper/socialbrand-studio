@@ -4,12 +4,12 @@ import type { BrandKit, BrandKitNormalizationResult, BrandTemplate, ImageFit } f
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
-const safeString = (value: unknown, fallback: string, max = 160) => typeof value === "string" ? value.trim().slice(0, max) : fallback;
+const safeString = (value: unknown, fallback: string, max = 160) => (typeof value === "string" ? value.trim().slice(0, max) : fallback);
 export const clampNumber = (value: unknown, min: number, max: number, fallback: number) => {
   const number = typeof value === "number" ? value : Number(value);
   return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
 };
-export const normalizeHexColor = (value: unknown, fallback: string) => typeof value === "string" && HEX_COLOR.test(value.trim()) ? value.trim().toUpperCase() : fallback;
+export const normalizeHexColor = (value: unknown, fallback: string) => (typeof value === "string" && HEX_COLOR.test(value.trim()) ? value.trim().toUpperCase() : fallback);
 
 const normalizeTemplate = (raw: unknown, repairs: string[]): BrandTemplate => {
   const template = isRecord(raw) ? raw : {};
@@ -31,9 +31,15 @@ const normalizeTemplate = (raw: unknown, repairs: string[]): BrandTemplate => {
     imageZoom: number("imageZoom", TEMPLATE_LIMITS.imageZoom.min, TEMPLATE_LIMITS.imageZoom.max),
     imageX: number("imageX", TEMPLATE_LIMITS.imagePosition.min, TEMPLATE_LIMITS.imagePosition.max),
     imageY: number("imageY", TEMPLATE_LIMITS.imagePosition.min, TEMPLATE_LIMITS.imagePosition.max),
-    logoX: number("logoX", 0, 80), logoY: number("logoY", 5, 98), logoSize: number("logoSize", TEMPLATE_LIMITS.logoSize.min, TEMPLATE_LIMITS.logoSize.max),
-    nameX: number("nameX", 0, 95), nameY: number("nameY", 5, 98), nameSize: number("nameSize", TEMPLATE_LIMITS.nameSize.min, TEMPLATE_LIMITS.nameSize.max),
-    contactX: number("contactX", 20, 100), contactY: number("contactY", 5, 98), contactSize: number("contactSize", TEMPLATE_LIMITS.contactSize.min, TEMPLATE_LIMITS.contactSize.max),
+    logoX: number("logoX", 0, 80),
+    logoY: number("logoY", 5, 98),
+    logoSize: number("logoSize", TEMPLATE_LIMITS.logoSize.min, TEMPLATE_LIMITS.logoSize.max),
+    nameX: number("nameX", 0, 95),
+    nameY: number("nameY", 5, 98),
+    nameSize: number("nameSize", TEMPLATE_LIMITS.nameSize.min, TEMPLATE_LIMITS.nameSize.max),
+    contactX: number("contactX", 20, 100),
+    contactY: number("contactY", 5, 98),
+    contactSize: number("contactSize", TEMPLATE_LIMITS.contactSize.min, TEMPLATE_LIMITS.contactSize.max),
   };
 };
 
@@ -53,7 +59,9 @@ export const normalizeBrandKit = (raw: unknown): BrandKitNormalizationResult => 
     id: safeString(source.id, crypto.randomUUID(), 100),
     version: 1,
     brandName,
-    primaryColor: color("primaryColor"), secondaryColor: color("secondaryColor"), textColor: color("textColor"),
+    primaryColor: color("primaryColor"),
+    secondaryColor: color("secondaryColor"),
+    textColor: color("textColor"),
     contact: safeString(source.contact ?? source.phone, DEFAULT_BRAND_KIT.contact, 80),
     website: safeString(source.website, DEFAULT_BRAND_KIT.website, 120),
     slogan: safeString(source.slogan, DEFAULT_BRAND_KIT.slogan, 160),
@@ -81,8 +89,11 @@ export const loadAndRepairBrandKits = (value: string | null): { kits: BrandKit[]
     const ids = new Set<string>();
     const kits = results.map(({ brandKit }) => {
       if (ids.has(brandKit.id)) return { ...brandKit, id: crypto.randomUUID() };
-      ids.add(brandKit.id); return brandKit;
+      ids.add(brandKit.id);
+      return brandKit;
     });
     return { kits, repaired: results.some((result) => result.repaired) || ids.size !== results.length };
-  } catch { return { kits: [DEFAULT_BRAND_KIT], repaired: true }; }
+  } catch {
+    return { kits: [DEFAULT_BRAND_KIT], repaired: true };
+  }
 };

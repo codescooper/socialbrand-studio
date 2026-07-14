@@ -1,0 +1,9 @@
+name: Question
+description: Poser une question sur la bêta
+title: "[Question] "
+labels: [question]
+body:
+  - type: textarea
+    id: question
+    attributes: { label: Question, description: "Ne joignez pas de projet, Brand Kit, sauvegarde ou donnée personnelle." }
+    validations: { required: true }

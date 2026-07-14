@@ -1,0 +1,31 @@
+name: Rapport de bug
+description: Signaler un problème reproductible dans la bêta Windows
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes: { label: Version, placeholder: "0.1.0" }
+    validations: { required: true }
+  - type: dropdown
+    id: windows
+    attributes: { label: Windows, options: ["Windows 10 x64", "Windows 11 x64", "Autre"] }
+    validations: { required: true }
+  - type: textarea
+    id: action
+    attributes: { label: Action réalisée, description: "Décrivez les étapes sans joindre de données personnelles." }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: Résultat attendu }
+    validations: { required: true }
+  - type: textarea
+    id: observed
+    attributes: { label: Résultat observé }
+    validations: { required: true }
+  - type: dropdown
+    id: reproducible
+    attributes: { label: Reproductible, options: ["Toujours", "Parfois", "Une seule fois"] }
+  - type: textarea
+    id: screenshot
+    attributes: { label: Capture facultative, description: "Retirez toute image produit, téléphone, chemin local ou donnée personnelle." }

@@ -9,15 +9,23 @@ export const validateImageFile = (file: File): ImageFileError | null => {
   return null;
 };
 
-export const safeFilename = (value: string) => value
-  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-  .replace(/[<>:"'/\\|?*\x00-\x1F]/g, "-")
-  .replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-")
-  .replace(/^[-.]+|[-.]+$/g, "").toLowerCase() || "socialbrand";
+export const safeFilename = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    // Les caractères de contrôle Windows sont volontairement filtrés des noms de fichiers.
+    // eslint-disable-next-line no-control-regex
+    .replace(/[<>:"'/\\|?*\x00-\x1F]/g, "-")
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "")
+    .toLowerCase() || "socialbrand";
 
 export const buildExportFilename = (brand: string, format: string, extension: "png" | "jpg", date = new Date()) => {
   const stamp = date.toISOString().slice(0, 10);
   return `${safeFilename(brand)}-${safeFilename(format)}-${stamp}.${extension}`;
 };
 
-export const resetFileInput = (input: HTMLInputElement) => { input.value = ""; };
+export const resetFileInput = (input: HTMLInputElement) => {
+  input.value = "";
+};
