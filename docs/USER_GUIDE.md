@@ -15,6 +15,15 @@ Ouvrez SocialBrand Studio depuis son adresse HTTPS. Utilisez le bouton **Install
 
 Dans **Traitement par lot**, ajoutez jusqu’à 50 images et 200 Mo, choisissez le Brand Kit puis lancez. L’annulation conserve les réussites. Téléchargez ensuite le ZIP et consultez l’historique.
 
+## Associer des réseaux
+
+1. Sélectionnez le Brand Kit concerné puis ouvrez **Réseaux**.
+2. Ajoutez un profil Facebook, Instagram, TikTok ou LinkedIn avec ses informations publiques.
+3. Utilisez uniquement une URL HTTPS appartenant au domaine de la plateforme.
+4. Modifiez ou supprimez l’association locale depuis sa carte.
+
+Les profils restent liés au Brand Kit sélectionné. Aucun mot de passe ou jeton n’est demandé et aucune connexion API n’est réalisée dans cette version. Les statistiques affichent **Données indisponibles** tant qu’aucun snapshot réel n’existe.
+
 ## Sauvegarder ses données
 
 Dans **Paramètres**, utilisez **Sauvegarder mes données**. La restauration peut fusionner ou remplacer ; le remplacement demande deux confirmations. Sauvegardez impérativement avant de vider les données du navigateur, changer de profil, de domaine ou d’appareil.

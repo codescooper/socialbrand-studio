@@ -1,4 +1,19 @@
-# Vérification manuelle — Lots 1 à 4
+# Vérification manuelle — Lots 1 à 5A
+
+## Lot 5A — comptes sociaux
+
+1. Ouvrir une base 0.2.0 et confirmer la présence des Brand Kits, projets, exports et réglages existants.
+2. Ajouter Facebook et Instagram au Brand Kit A, puis TikTok au Brand Kit B.
+3. Changer de Brand Kit et vérifier l’isolation des profils.
+4. Tenter un deuxième Facebook sur le Brand Kit A et vérifier le refus accessible.
+5. Modifier un profil, annuler une suppression puis confirmer une suppression.
+6. Fermer et rouvrir la PWA pour vérifier la persistance IndexedDB.
+7. Sauvegarder, vider les données, restaurer puis vérifier les relations Brand Kit/comptes.
+8. Restaurer également une sauvegarde 0.2.0 sans tables sociales.
+9. Tester ordinateur, tablette et petit écran sans débordement horizontal global.
+10. Tester hors connexion après un premier chargement et après une mise à jour du service worker.
+11. Vérifier que les métriques absentes affichent « Données indisponibles » et non zéro.
+12. Contrôler qu’aucune requête vers une plateforme sociale, aucun secret et aucune donnée fictive ne sont présents.
 
 ## Pivot PWA — validation navigateur
 

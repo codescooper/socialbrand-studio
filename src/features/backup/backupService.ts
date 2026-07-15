@@ -1,6 +1,7 @@
 import JSZip from "jszip";
 import { db } from "../../db/database";
 import { StorageError, storageError } from "../../db/errors";
+import { APP_VERSION } from "../../services/appSettings";
 import type { BackupData, BackupManifest } from "../../types/persistence";
 
 const JSON_FILES: Record<Exclude<keyof BackupData, "assets">, string> = {
@@ -9,7 +10,12 @@ const JSON_FILES: Record<Exclude<keyof BackupData, "assets">, string> = {
   exports: "data/exports.json",
   batches: "data/batches.json",
   settings: "data/settings.json",
+  socialAccounts: "data/social-accounts.json",
+  socialMetricSnapshots: "data/social-metric-snapshots.json",
+  socialPosts: "data/social-posts.json",
+  socialPostMetricSnapshots: "data/social-post-metric-snapshots.json",
 };
+const LEGACY_REQUIRED = new Set<keyof typeof JSON_FILES>(["brandKits", "projects", "exports", "batches", "settings"]);
 export async function readAllData(): Promise<BackupData> {
   return {
     brandKits: await db.brandKits.toArray(),
@@ -18,6 +24,10 @@ export async function readAllData(): Promise<BackupData> {
     batches: await db.batches.toArray(),
     settings: await db.settings.toArray(),
     assets: await db.assets.toArray(),
+    socialAccounts: await db.socialAccounts.toArray(),
+    socialMetricSnapshots: await db.socialMetricSnapshots.toArray(),
+    socialPosts: await db.socialPosts.toArray(),
+    socialPostMetricSnapshots: await db.socialPostMetricSnapshots.toArray(),
   };
 }
 export async function exportBackup() {
@@ -31,7 +41,7 @@ export async function exportBackup() {
     format: "socialbrand-backup",
     formatVersion: 1,
     createdAt: new Date().toISOString(),
-    appVersion: "0.1.0",
+    appVersion: APP_VERSION,
     counts: {
       brandKits: data.brandKits.length,
       projects: data.projects.length,
@@ -39,6 +49,10 @@ export async function exportBackup() {
       batches: data.batches.length,
       settings: data.settings.length,
       assets: data.assets.length,
+      socialAccounts: data.socialAccounts.length,
+      socialMetricSnapshots: data.socialMetricSnapshots.length,
+      socialPosts: data.socialPosts.length,
+      socialPostMetricSnapshots: data.socialPostMetricSnapshots.length,
     },
     estimatedSize: data.assets.reduce((n, a) => n + a.size, 0),
     includesAssets: data.assets.length > 0,
@@ -55,10 +69,17 @@ export async function parseBackup(file: File): Promise<{ manifest: BackupManifes
     if (manifest.format !== "socialbrand-backup") throw new StorageError("Cette archive n’est pas une sauvegarde SocialBrand Studio.", "invalid-backup");
     if (manifest.formatVersion !== 1) throw new StorageError("Version de sauvegarde non prise en charge. Utilisez une sauvegarde au format v1.", "unsupported-version");
     const data = {} as BackupData;
-    for (const [key, path] of Object.entries(JSON_FILES)) (data as unknown as Record<string, unknown>)[key] = JSON.parse(await required(zip, path).async("text"));
+    for (const [key, path] of Object.entries(JSON_FILES)) {
+      const entry = zip.file(path);
+      if (!entry && !LEGACY_REQUIRED.has(key as keyof typeof JSON_FILES)) {
+        (data as unknown as Record<string, unknown>)[key] = [];
+        continue;
+      }
+      (data as unknown as Record<string, unknown>)[key] = JSON.parse(await required(zip, path).async("text"));
+    }
     const meta = JSON.parse(await required(zip, "data/assets.json").async("text")) as Omit<BackupData["assets"][number], "blob">[];
     data.assets = await Promise.all(meta.map(async (asset) => ({ ...asset, blob: await required(zip, `assets/${asset.id}`).async("blob") })));
-    if (!Array.isArray(data.brandKits) || !Array.isArray(data.projects) || !Array.isArray(data.exports) || !Array.isArray(data.batches)) throw new Error("shape");
+    if (Object.values(data).some((value) => !Array.isArray(value))) throw new Error("shape");
     return { manifest, data };
   } catch (error) {
     if (error instanceof StorageError) throw error;
@@ -75,63 +96,114 @@ export async function importBackup(file: File, mode: "merge" | "replace") {
   const remap = new Map<string, string>();
   let imported = 0;
   try {
-    await db.transaction("rw", [db.brandKits, db.projects, db.exports, db.batches, db.settings, db.assets], async () => {
-      if (mode === "replace") await Promise.all([db.brandKits.clear(), db.projects.clear(), db.exports.clear(), db.batches.clear(), db.settings.clear(), db.assets.clear()]);
-      const choose = async (table: { get(id: string): Promise<unknown> }, id: string) => (mode === "merge" && (await table.get(id)) ? crypto.randomUUID() : id);
-      for (const item of data.brandKits) {
-        const existing = mode === "merge" ? await db.brandKits.get(item.id) : undefined;
-        if (existing && JSON.stringify(existing.content) === JSON.stringify(item.content)) {
-          remap.set(item.id, existing.id);
-          continue;
+    await db.transaction(
+      "rw",
+      [db.brandKits, db.projects, db.exports, db.batches, db.settings, db.assets, db.socialAccounts, db.socialMetricSnapshots, db.socialPosts, db.socialPostMetricSnapshots],
+      async () => {
+        if (mode === "replace")
+          await Promise.all([
+            db.brandKits.clear(),
+            db.projects.clear(),
+            db.exports.clear(),
+            db.batches.clear(),
+            db.settings.clear(),
+            db.assets.clear(),
+            db.socialAccounts.clear(),
+            db.socialMetricSnapshots.clear(),
+            db.socialPosts.clear(),
+            db.socialPostMetricSnapshots.clear(),
+          ]);
+        const choose = async (table: { get(id: string): Promise<unknown> }, id: string) => (mode === "merge" && (await table.get(id)) ? crypto.randomUUID() : id);
+        for (const item of data.brandKits) {
+          const existing = mode === "merge" ? await db.brandKits.get(item.id) : undefined;
+          if (existing && JSON.stringify(existing.content) === JSON.stringify(item.content)) {
+            remap.set(item.id, existing.id);
+            continue;
+          }
+          const id = await choose(db.brandKits, item.id);
+          remap.set(item.id, id);
+          await db.brandKits.put({ ...item, id, content: { ...item.content, id } });
+          imported++;
         }
-        const id = await choose(db.brandKits, item.id);
-        remap.set(item.id, id);
-        await db.brandKits.put({ ...item, id, content: { ...item.content, id } });
-        imported++;
-      }
-      for (const item of data.assets) {
-        const existing = mode === "merge" ? await db.assets.get(item.id) : undefined;
-        if (existing && existing.size === item.size && existing.name === item.name) {
-          remap.set(item.id, existing.id);
-          continue;
+        for (const item of data.assets) {
+          const existing = mode === "merge" ? await db.assets.get(item.id) : undefined;
+          if (existing && existing.size === item.size && existing.name === item.name) {
+            remap.set(item.id, existing.id);
+            continue;
+          }
+          const id = await choose(db.assets, item.id);
+          remap.set(item.id, id);
+          await db.assets.put({ ...item, id });
+          imported++;
         }
-        const id = await choose(db.assets, item.id);
-        remap.set(item.id, id);
-        await db.assets.put({ ...item, id });
-        imported++;
-      }
-      for (const item of data.projects) {
-        const id = await choose(db.projects, item.id);
-        remap.set(item.id, id);
-        await db.projects.put({
-          ...item,
-          id,
-          brandKitId: remap.get(item.brandKitId) || item.brandKitId,
-          sourceAssetId: item.sourceAssetId && (remap.get(item.sourceAssetId) || item.sourceAssetId),
-          thumbnailAssetId: item.thumbnailAssetId && (remap.get(item.thumbnailAssetId) || item.thumbnailAssetId),
-        });
-        imported++;
-      }
-      for (const item of data.batches) {
-        const id = await choose(db.batches, item.id);
-        remap.set(item.id, id);
-        await db.batches.put({ ...item, id, parameters: { ...item.parameters, brandKitId: remap.get(item.parameters.brandKitId) || item.parameters.brandKitId } });
-        imported++;
-      }
-      for (const item of data.exports) {
-        const id = await choose(db.exports, item.id);
-        await db.exports.put({
-          ...item,
-          id,
-          projectId: item.projectId && (remap.get(item.projectId) || item.projectId),
-          batchJobId: item.batchJobId && (remap.get(item.batchJobId) || item.batchJobId),
-          brandKitId: remap.get(item.brandKitId) || item.brandKitId,
-          thumbnailAssetId: item.thumbnailAssetId && (remap.get(item.thumbnailAssetId) || item.thumbnailAssetId),
-        });
-        imported++;
-      }
-      for (const item of data.settings) if (mode === "replace" || !(await db.settings.get(item.key))) await db.settings.put(item);
-    });
+        for (const item of data.projects) {
+          const id = await choose(db.projects, item.id);
+          remap.set(item.id, id);
+          await db.projects.put({
+            ...item,
+            id,
+            brandKitId: remap.get(item.brandKitId) || item.brandKitId,
+            sourceAssetId: item.sourceAssetId && (remap.get(item.sourceAssetId) || item.sourceAssetId),
+            thumbnailAssetId: item.thumbnailAssetId && (remap.get(item.thumbnailAssetId) || item.thumbnailAssetId),
+          });
+          imported++;
+        }
+        for (const item of data.batches) {
+          const id = await choose(db.batches, item.id);
+          remap.set(item.id, id);
+          await db.batches.put({ ...item, id, parameters: { ...item.parameters, brandKitId: remap.get(item.parameters.brandKitId) || item.parameters.brandKitId } });
+          imported++;
+        }
+        for (const item of data.exports) {
+          const id = await choose(db.exports, item.id);
+          await db.exports.put({
+            ...item,
+            id,
+            projectId: item.projectId && (remap.get(item.projectId) || item.projectId),
+            batchJobId: item.batchJobId && (remap.get(item.batchJobId) || item.batchJobId),
+            brandKitId: remap.get(item.brandKitId) || item.brandKitId,
+            thumbnailAssetId: item.thumbnailAssetId && (remap.get(item.thumbnailAssetId) || item.thumbnailAssetId),
+          });
+          imported++;
+        }
+        for (const item of data.socialAccounts) {
+          const brandKitId = remap.get(item.brandKitId) || item.brandKitId;
+          const existing = mode === "merge" ? await db.socialAccounts.where("[brandKitId+platform]").equals([brandKitId, item.platform]).first() : undefined;
+          if (existing) {
+            remap.set(item.id, existing.id);
+            continue;
+          }
+          const id = await choose(db.socialAccounts, item.id);
+          remap.set(item.id, id);
+          await db.socialAccounts.put({ ...item, id, brandKitId });
+          imported++;
+        }
+        for (const item of data.socialMetricSnapshots) {
+          const id = await choose(db.socialMetricSnapshots, item.id);
+          remap.set(item.id, id);
+          await db.socialMetricSnapshots.put({ ...item, id, socialAccountId: remap.get(item.socialAccountId) || item.socialAccountId });
+          imported++;
+        }
+        for (const item of data.socialPosts) {
+          const socialAccountId = remap.get(item.socialAccountId) || item.socialAccountId;
+          const existing = mode === "merge" ? await db.socialPosts.where("[socialAccountId+externalPostId]").equals([socialAccountId, item.externalPostId]).first() : undefined;
+          if (existing) {
+            remap.set(item.id, existing.id);
+            continue;
+          }
+          const id = await choose(db.socialPosts, item.id);
+          remap.set(item.id, id);
+          await db.socialPosts.put({ ...item, id, socialAccountId });
+          imported++;
+        }
+        for (const item of data.socialPostMetricSnapshots) {
+          const id = await choose(db.socialPostMetricSnapshots, item.id);
+          await db.socialPostMetricSnapshots.put({ ...item, id, socialPostId: remap.get(item.socialPostId) || item.socialPostId });
+          imported++;
+        }
+        for (const item of data.settings) if (mode === "replace" || !(await db.settings.get(item.key))) await db.settings.put(item);
+      },
+    );
   } catch (error) {
     throw storageError(error, "la restauration");
   }

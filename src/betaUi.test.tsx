@@ -3,11 +3,13 @@ import { describe, expect, it } from "vitest";
 import App from "./App";
 import { Onboarding } from "./components/Onboarding";
 import { HelpPage } from "./features/help/HelpPage";
+import { SocialPage } from "./features/social/SocialPage";
+import { DEFAULT_BRAND_KIT } from "./constants/brandKitDefaults";
 
 describe("interface bêta", () => {
   it("affiche uniquement des modules réels dans la navigation", () => {
     const html = renderToStaticMarkup(<App />);
-    for (const label of ["Vue d&#x27;ensemble", "Projets", "Brand Kit", "Produits", "Traitement par lot", "Exports", "Historique", "Paramètres", "Aide"])
+    for (const label of ["Vue d&#x27;ensemble", "Projets", "Brand Kit", "Réseaux", "Produits", "Traitement par lot", "Exports", "Historique", "Paramètres", "Aide"])
       expect(html).toContain(label);
     expect(html).not.toContain("Templates");
     expect(html).not.toContain("Alex Morgan");
@@ -23,5 +25,14 @@ describe("interface bêta", () => {
     const html = renderToStaticMarkup(<HelpPage onRestartOnboarding={() => undefined} onReportIssue={() => undefined} />);
     expect(html).toContain("Questions fréquentes");
     expect(html).toContain("Aucune image ni donnée locale");
+  });
+  it("rend l’état vide Réseaux sans statistiques inventées", () => {
+    const html = renderToStaticMarkup(
+      <SocialPage brandKits={[DEFAULT_BRAND_KIT]} activeBrandKit={DEFAULT_BRAND_KIT} onBrandKitChange={() => undefined} onNotify={() => undefined} />,
+    );
+    for (const platform of ["Facebook", "Instagram", "TikTok", "LinkedIn"]) expect(html).toContain(platform);
+    expect(html).toContain("Données indisponibles");
+    expect(html).toContain("Connexion API bientôt disponible");
+    expect(html).not.toContain("<strong>0</strong>");
   });
 });

@@ -3,6 +3,7 @@ import { APP_VERSION } from "../../services/appSettings";
 const guides = [
   ["Démarrage rapide", "Créez un Brand Kit, importez une image, choisissez un format puis exportez."],
   ["Brand Kit", "Renseignez logo, couleurs et contacts. Sauvegardez avant de quitter l’écran."],
+  ["Réseaux", "Associez les informations publiques de vos profils au Brand Kit actif. Aucun mot de passe ou jeton n’est demandé."],
   ["Ajuster une image", "Glissez l’image, zoomez et positionnez logo, nom et contacts dans l’éditeur."],
   ["PNG ou JPG", "PNG préserve la qualité. JPG produit un fichier plus léger avec une qualité réglable."],
   ["Traitement par lot", "Ajoutez jusqu’à 50 images et 200 Mo, lancez le traitement puis téléchargez le ZIP."],
@@ -22,6 +23,7 @@ const faq = [
     "Elle retire l’application de l’appareil, mais le navigateur peut conserver les données du site. Téléchargez une sauvegarde avant tout nettoyage.",
   ],
   ["Quelles limites pour les lots ?", "50 images, 25 Mo chacune et 200 Mo au total."],
+  ["Les réseaux sont-ils connectés ?", "Non. Les profils restent manuels et locaux ; les statistiques nécessiteront une future connexion API."],
 ];
 export function HelpPage({ onRestartOnboarding, onReportIssue }: { onRestartOnboarding: () => void; onReportIssue: () => void }) {
   return (

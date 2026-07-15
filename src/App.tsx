@@ -10,6 +10,7 @@ import {
   FolderOpen,
   Minus,
   Move,
+  Network,
   RotateCcw,
   Save,
   Trash2,
@@ -24,7 +25,7 @@ import {
   Upload,
   ZoomIn,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, PointerEvent } from "react";
 import { Notifications } from "./components/Notifications";
 import { Onboarding } from "./components/Onboarding";
@@ -32,6 +33,7 @@ import { PwaStatus } from "./components/PwaStatus";
 import { BatchPage } from "./features/batch/BatchPage";
 import { ExportsPage, HistoryPage, ProjectsPage, StoragePage } from "./features/library/LibraryPages";
 import { HelpPage } from "./features/help/HelpPage";
+import { SocialPage } from "./features/social/SocialPage";
 import { saveProject } from "./features/projects/projectService";
 import { db } from "./db/database";
 import { initializePersistence } from "./db/migrations";
@@ -52,6 +54,7 @@ const nav = [
   [Grid2X2, "Vue d'ensemble"],
   [FolderOpen, "Projets"],
   [Palette, "Brand Kit"],
+  [Network, "Réseaux"],
   [Box, "Produits"],
   [Layers3, "Traitement par lot"],
   [Download, "Exports"],
@@ -115,11 +118,11 @@ export default function App() {
   const dragStart = useRef({ x: 0, y: 0, px: 0, py: 0 });
   const imageUrlRef = useRef("");
   const notificationTimer = useRef<number | null>(null);
-  const showNotification = (level: NotificationLevel, message: string, persistent = level === "error") => {
+  const showNotification = useCallback((level: NotificationLevel, message: string, persistent = level === "error") => {
     if (notificationTimer.current) window.clearTimeout(notificationTimer.current);
     setNotification({ id: Date.now(), level, message, persistent });
     if (!persistent) notificationTimer.current = window.setTimeout(() => setNotification(null), 4200);
-  };
+  }, []);
   useEffect(() => {
     logLocalEvent("info", "app_start", { versionMajor: 0, versionMinor: 1 });
     void initializePersistence()
@@ -778,6 +781,8 @@ export default function App() {
                 </aside>
               </div>
             </section>
+          ) : active === "Réseaux" ? (
+            <SocialPage brandKits={brandKits} activeBrandKit={brandKit} onBrandKitChange={setBrandKit} onNotify={showNotification} />
           ) : active === "Produits" ? (
             <section className="products-page">
               <div className="page-heading">
