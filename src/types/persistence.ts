@@ -1,5 +1,6 @@
 import type { BrandKit } from "./brandKit";
 import type { ExportType } from "../services/visualRenderer";
+import type { SocialAccountRecord, SocialMetricSnapshotRecord, SocialPostMetricSnapshotRecord, SocialPostRecord } from "./social";
 
 export const CONTENT_VERSION = 1;
 export type PersistedStatus = "success" | "failed" | "cancelled";
@@ -59,6 +60,10 @@ export type BackupData = {
   batches: BatchHistoryRecord[];
   settings: AppSettingRecord[];
   assets: AssetRecord[];
+  socialAccounts: SocialAccountRecord[];
+  socialMetricSnapshots: SocialMetricSnapshotRecord[];
+  socialPosts: SocialPostRecord[];
+  socialPostMetricSnapshots: SocialPostMetricSnapshotRecord[];
 };
 export type BackupManifest = {
   format: "socialbrand-backup";

@@ -1,4 +1,5 @@
 import "fake-indexeddb/auto";
+import JSZip from "jszip";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "./database";
 import { initializePersistence } from "./migrations";
@@ -7,6 +8,8 @@ import { brandKitRepository } from "./repositories";
 import { duplicateProject, saveProject } from "../features/projects/projectService";
 import { cleanOrphanAssets, findOrphanAssets } from "../features/storage/storageService";
 import { exportBackup, importBackup, parseBackup } from "../features/backup/backupService";
+import { socialAccountRepository } from "./repositories/socialAccountRepository";
+import { socialMetricRepository } from "./repositories/socialMetricRepository";
 
 class MemoryStorage {
   data = new Map<string, string>();
@@ -107,13 +110,60 @@ describe("persistance locale", () => {
       status: "success",
       exportedAt: now,
     });
+    await socialAccountRepository.create({
+      id: "social-backup",
+      version: 1,
+      brandKitId: DEFAULT_BRAND_KIT.id,
+      platform: "facebook",
+      displayName: "Page sauvegardée",
+      connectionMode: "manual",
+      connectionStatus: "manual",
+      grantedScopes: [],
+      createdAt: now,
+      updatedAt: now,
+    });
+    await socialMetricRepository.create({
+      id: "social-metric-backup",
+      version: 1,
+      socialAccountId: "social-backup",
+      capturedAt: now,
+      metrics: { followers: 0 },
+      sourceMetrics: {},
+      source: "api",
+    });
     const backup = new File([await exportBackup()], "backup.zip", { type: "application/zip" });
     const parsed = await parseBackup(backup);
     expect(parsed.manifest.counts.projects).toBe(1);
+    expect(parsed.manifest.counts.socialAccounts).toBe(1);
+    expect(parsed.data.socialMetricSnapshots[0].metrics.followers).toBe(0);
     const result = await importBackup(backup, "merge");
     expect(result.remapped).toBeGreaterThan(0);
     expect(await db.projects.count()).toBe(2);
     const restoredExports = await db.exports.toArray();
     expect(restoredExports.every((item) => item.projectId && restoredExports.length === 2)).toBe(true);
+    expect(await db.socialAccounts.count()).toBe(1);
+    expect(await db.socialMetricSnapshots.count()).toBe(2);
+    expect((await db.socialMetricSnapshots.toArray()).every((item) => item.socialAccountId === "social-backup")).toBe(true);
+  });
+  it("restaure une ancienne sauvegarde sans tables sociales", async () => {
+    const zip = new JSZip();
+    zip.file(
+      "manifest.json",
+      JSON.stringify({
+        format: "socialbrand-backup",
+        formatVersion: 1,
+        createdAt: new Date().toISOString(),
+        appVersion: "0.2.0",
+        counts: { brandKits: 0, projects: 0, exports: 0, batches: 0, settings: 0, assets: 0 },
+        estimatedSize: 0,
+        includesAssets: false,
+      }),
+    );
+    for (const path of ["data/brand-kits.json", "data/projects.json", "data/exports.json", "data/batches.json", "data/settings.json", "data/assets.json"]) zip.file(path, "[]");
+    const file = new File([await zip.generateAsync({ type: "blob" })], "backup-0.2.0.zip", { type: "application/zip" });
+    const parsed = await parseBackup(file);
+    expect(parsed.data.socialAccounts).toEqual([]);
+    expect(parsed.data.socialMetricSnapshots).toEqual([]);
+    await expect(importBackup(file, "merge")).resolves.toBeTruthy();
   });
 });
