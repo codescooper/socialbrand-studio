@@ -1,4 +1,4 @@
-# Vérification manuelle — Lots 1 à 5A
+# Vérification manuelle — Lots 1 à 5B
 
 ## Lot 5A — comptes sociaux
 
@@ -14,6 +14,18 @@
 10. Tester hors connexion après un premier chargement et après une mise à jour du service worker.
 11. Vérifier que les métriques absentes affichent « Données indisponibles » et non zéro.
 12. Contrôler qu’aucune requête vers une plateforme sociale, aucun secret et aucune donnée fictive ne sont présents.
+
+## Lot 5B — backend sécurisé
+
+1. Sans variables Supabase, ouvrir **Compte** et vérifier que le mode local reste disponible.
+2. Configurer un projet de développement et recevoir un lien magique avec un utilisateur de test.
+3. Créer un espace business puis vérifier que le créateur devient `owner`.
+4. Lier le Brand Kit actif et vérifier son apparition dans `brand_kit_links`.
+5. Avec un second utilisateur sans adhésion, vérifier qu’aucun espace du premier utilisateur n’est visible.
+6. Avec un membre `viewer`, vérifier que les modifications sont refusées.
+7. Vérifier que `social_credentials` et `oauth_states` sont inaccessibles depuis la clé publique.
+8. Inspecter la sauvegarde locale et confirmer l’absence de credential et de session cloud.
+9. Se déconnecter puis vérifier que les fonctions locales restent disponibles.
 
 ## Pivot PWA — validation navigateur
 

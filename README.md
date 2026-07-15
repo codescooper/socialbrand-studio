@@ -2,7 +2,7 @@
 
 PWA locale d’AWEMA pour appliquer un Brand Kit à des photos produits, adapter le format aux réseaux sociaux et exporter des visuels cohérents, individuellement ou par lot.
 
-## Fonctionnalités de la PWA 0.3.0
+## Fonctionnalités de la PWA 0.4.0
 
 - Brand Kits importables/exportables en JSON ;
 - éditeur produit avec cadrage fidèle au rendu PNG/JPG ;
@@ -12,9 +12,10 @@ PWA locale d’AWEMA pour appliquer un Brand Kit à des photos produits, adapter
 - historique réel, sauvegarde et restauration ;
 - profils sociaux publics associés à chaque Brand Kit, stockés localement ;
 - tableau de santé digitale prêt pour de futures métriques réelles, sans valeurs simulées ;
+- authentification cloud facultative, espaces business et rôles sécurisés par RLS ;
 - onboarding, aide et paramètres hors connexion.
 
-Les connexions OAuth, appels aux API sociales, fonctions cloud, IA, collaboration et publication directe ne font pas partie de cette version.
+Les connexions OAuth aux plateformes, appels aux API sociales, IA, collaboration et publication directe ne font pas partie de cette version.
 
 ## Installation
 
@@ -36,6 +37,8 @@ npm run verify
 npm run build
 npm run preview
 ```
+
+La PWA reste local-first. Pour activer les comptes et espaces business, consultez [la documentation du backend cloud](docs/CLOUD_BACKEND.md) et copiez `.env.example` vers un fichier local non versionné.
 
 Le site statique prêt à héberger est produit dans `dist/`. Le déploiement GitHub Pages est automatisé lors d’un push sur `master`.
 

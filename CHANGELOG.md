@@ -2,6 +2,24 @@
 
 Format inspiré de Keep a Changelog. Le projet suit le versionnage sémantique.
 
+## [0.4.0] - 2026-07-15
+
+### Added
+
+- Authentification cloud facultative par lien magique.
+- Espaces business et rôles `owner`, `admin`, `editor`, `viewer`.
+- Liaison sécurisée des Brand Kits locaux aux espaces business.
+- Schéma Supabase avec RLS, états OAuth, connexions sociales, synchronisations et audit.
+- Coffre serveur AES-GCM versionné pour les futurs credentials sociaux.
+- Edge Function sécurisée pour créer les espaces et lier les Brand Kits.
+- Contrôle automatique de l’absence de secrets serveur dans le frontend.
+
+### Security
+
+- Aucun accès frontend aux tables de credentials et d’états OAuth.
+- Origines Edge Functions en liste blanche.
+- Rôles et isolation multi-business appliqués au niveau PostgreSQL.
+
 ## [0.3.0] - 2026-07-15
 
 ### Added
