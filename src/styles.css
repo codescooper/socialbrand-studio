@@ -538,6 +538,97 @@ body {
     flex-wrap: wrap;
   }
 }
+
+.cloud-page {
+  display: grid;
+  gap: 24px;
+  padding: 28px;
+}
+.cloud-heading {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.cloud-heading h1,
+.cloud-page h1 {
+  margin: 8px 0;
+}
+.cloud-empty,
+.cloud-auth-card {
+  align-content: center;
+  background: #fff;
+  border: 1px solid #dedede;
+  border-radius: 18px;
+  justify-items: center;
+  margin: 20px auto;
+  max-width: 680px;
+  min-height: 420px;
+  text-align: center;
+}
+.cloud-empty code {
+  background: #f4f4f4;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.cloud-auth-card form,
+.cloud-create {
+  display: grid;
+  gap: 9px;
+  max-width: 520px;
+  width: 100%;
+}
+.cloud-auth-card input,
+.cloud-create input {
+  border: 1px solid #c9c9c9;
+  border-radius: 9px;
+  min-height: 44px;
+  padding: 0 12px;
+}
+.cloud-create {
+  background: #fff;
+  border: 1px solid #dedede;
+  border-radius: 14px;
+  max-width: none;
+  padding: 18px;
+}
+.cloud-create > div {
+  display: flex;
+  gap: 10px;
+}
+.cloud-create input {
+  flex: 1;
+}
+.cloud-workspace-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+.cloud-workspace-grid article {
+  background: #fff;
+  border: 1px solid #dedede;
+  border-radius: 14px;
+  padding: 20px;
+}
+.cloud-workspace-grid h2 {
+  margin: 12px 0 5px;
+}
+.cloud-no-workspace {
+  background: #fff9d9;
+  border: 1px dashed #ddbd00;
+  border-radius: 12px;
+  padding: 20px;
+}
+@media (max-width: 640px) {
+  .cloud-heading,
+  .cloud-create > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .cloud-page {
+    padding: 18px;
+  }
+}
 @media (max-width: 560px) {
   .social-brand-identity {
     align-items: flex-start;

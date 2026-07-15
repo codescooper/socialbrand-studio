@@ -23,9 +23,10 @@ import {
   Settings,
   Sparkles,
   Upload,
+  UserRound,
   ZoomIn,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, PointerEvent } from "react";
 import { Notifications } from "./components/Notifications";
 import { Onboarding } from "./components/Onboarding";
@@ -50,6 +51,8 @@ import { buildExportFilename, resetFileInput, validateImageFile } from "./utils/
 import { DEFAULT_PREFERENCES, APP_VERSION, isOnboardingComplete, loadPreferences, savePreferences, setOnboardingComplete, type AppPreferences } from "./services/appSettings";
 import { logLocalEvent } from "./services/localLogger";
 
+const CloudPage = lazy(() => import("./features/cloud/CloudPage").then((module) => ({ default: module.CloudPage })));
+
 const nav = [
   [Grid2X2, "Vue d'ensemble"],
   [FolderOpen, "Projets"],
@@ -59,6 +62,7 @@ const nav = [
   [Layers3, "Traitement par lot"],
   [Download, "Exports"],
   [Clock3, "Historique"],
+  [UserRound, "Compte"],
   [Settings, "Paramètres"],
   [CircleHelp, "Aide"],
 ] as const;
@@ -1099,6 +1103,16 @@ export default function App() {
             <ExportsPage items={exports} />
           ) : active === "Historique" ? (
             <HistoryPage exports={exports} batches={batches} onRefresh={() => void refreshData()} notify={showNotification} />
+          ) : active === "Compte" ? (
+            <Suspense
+              fallback={
+                <section className="cloud-page" aria-live="polite">
+                  Chargement du compte…
+                </section>
+              }
+            >
+              <CloudPage activeBrandKit={brandKit} notify={showNotification} />
+            </Suspense>
           ) : active === "Paramètres" ? (
             <StoragePage
               notify={showNotification}
