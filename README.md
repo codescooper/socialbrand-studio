@@ -2,7 +2,7 @@
 
 PWA locale d’AWEMA pour appliquer un Brand Kit à des photos produits, adapter le format aux réseaux sociaux et exporter des visuels cohérents, individuellement ou par lot.
 
-## Fonctionnalités de la PWA 0.2.0
+## Fonctionnalités de la PWA 0.3.0
 
 - Brand Kits importables/exportables en JSON ;
 - éditeur produit avec cadrage fidèle au rendu PNG/JPG ;
@@ -10,9 +10,11 @@ PWA locale d’AWEMA pour appliquer un Brand Kit à des photos produits, adapter
 - projets locaux reprenables ;
 - traitement de 50 images maximum avec ZIP et rapport ;
 - historique réel, sauvegarde et restauration ;
+- profils sociaux publics associés à chaque Brand Kit, stockés localement ;
+- tableau de santé digitale prêt pour de futures métriques réelles, sans valeurs simulées ;
 - onboarding, aide et paramètres hors connexion.
 
-Les fonctions cloud, IA, collaboration et publication directe ne font pas partie de cette version.
+Les connexions OAuth, appels aux API sociales, fonctions cloud, IA, collaboration et publication directe ne font pas partie de cette version.
 
 ## Installation
 
@@ -39,7 +41,7 @@ Le site statique prêt à héberger est produit dans `dist/`. Le déploiement Gi
 
 ## Architecture et données
 
-React/TypeScript/Vite rend l’interface. IndexedDB/Dexie conserve Brand Kits, projets, historique, réglages et ressources nécessaires dans le profil du navigateur. Le rendu Canvas et JSZip fonctionnent localement : aucune image n’est envoyée à un serveur.
+React/TypeScript/Vite rend l’interface. IndexedDB/Dexie conserve Brand Kits, profils sociaux publics, projets, historique, réglages et ressources nécessaires dans le profil du navigateur. Le rendu Canvas et JSZip fonctionnent localement : aucune image ni donnée sociale n’est envoyée à un serveur.
 
 Avant de supprimer les données du site ou de changer d’appareil, utilisez **Paramètres → Sauvegarder mes données**. Consultez [le guide utilisateur](docs/USER_GUIDE.md), [la confidentialité](docs/PRIVACY.md) et [le dépannage](docs/TROUBLESHOOTING.md).
 

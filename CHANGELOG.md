@@ -2,6 +2,26 @@
 
 Format inspiré de Keep a Changelog. Le projet suit le versionnage sémantique.
 
+## [0.3.0] - 2026-07-15
+
+### Added
+
+- Onglet Réseaux associé au Brand Kit actif avec profils manuels Facebook, Instagram, TikTok et LinkedIn.
+- Schéma IndexedDB v2 pour comptes, métriques, publications et métriques de publications sociales.
+- Tableau de santé digitale fondé uniquement sur des snapshots locaux réels et états « Données indisponibles » explicites.
+- Contrats des futurs connecteurs API, brouillons de contenu et cibles de publication, sans implémentation réseau.
+- Validation stricte des profils, repositories transactionnels et calculs purs de comparaison et d’engagement.
+
+### Changed
+
+- Sauvegardes enrichies avec les tables sociales et restauration compatible avec les archives 0.2.0.
+- Navigation et mise en page adaptées aux petits écrans et à l’installation PWA.
+
+### Security
+
+- Aucun mot de passe, jeton, secret, cookie ou clé API n’est demandé ou stocké.
+- Aucune URL de profil n’est chargée automatiquement et aucune API sociale n’est appelée.
+
 ## [0.2.0] - 2026-07-14
 
 ### Added
