@@ -5,7 +5,6 @@ import type { BrandKit } from "../../types/brandKit";
 import type { BusinessMembershipRecord, BusinessWorkspaceRecord } from "../../types/cloud";
 import type { NotificationLevel } from "../../types/notification";
 import { useAuth } from "./AuthProvider";
-import { AuthProvider } from "./AuthProvider";
 
 type CloudPageProps = { activeBrandKit: BrandKit; notify: (level: NotificationLevel, message: string, persistent?: boolean) => void };
 
@@ -155,9 +154,5 @@ function CloudPageContent({ activeBrandKit, notify }: CloudPageProps) {
 }
 
 export function CloudPage(props: CloudPageProps) {
-  return (
-    <AuthProvider>
-      <CloudPageContent {...props} />
-    </AuthProvider>
-  );
+  return <CloudPageContent {...props} />;
 }

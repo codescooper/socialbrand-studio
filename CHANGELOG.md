@@ -25,6 +25,12 @@ Format inspiré de Keep a Changelog. Le projet suit le versionnage sémantique.
 - Réponse CORS `OPTIONS` conforme avec un statut 204 sans corps.
 - Build GitHub Pages raccordé aux variables publiques Supabase du dépôt.
 
+### Changed
+
+- Les nouveaux visiteurs voient désormais un accueil de connexion avant le tableau de bord.
+- Les comptes sans espace passent par une configuration obligatoire de la structure et du premier Brand Kit.
+- Le mode local reste disponible uniquement après un choix explicite de l’utilisateur pour la session courante.
+
 ## [0.3.0] - 2026-07-15
 
 ### Added

@@ -50,6 +50,7 @@ import type { BatchHistoryRecord, ExportRecord, ProjectRecord } from "./types/pe
 import { buildExportFilename, resetFileInput, validateImageFile } from "./utils/files";
 import { DEFAULT_PREFERENCES, APP_VERSION, isOnboardingComplete, loadPreferences, savePreferences, setOnboardingComplete, type AppPreferences } from "./services/appSettings";
 import { logLocalEvent } from "./services/localLogger";
+import { useAuth } from "./features/cloud/AuthProvider";
 
 const CloudPage = lazy(() => import("./features/cloud/CloudPage").then((module) => ({ default: module.CloudPage })));
 
@@ -98,6 +99,7 @@ function Bee({ small = false }: { small?: boolean }) {
 }
 
 export default function App() {
+  const auth = useAuth();
   const [active, setActive] = useState("Vue d'ensemble");
   const [notification, setNotification] = useState<AppNotification | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -493,10 +495,12 @@ export default function App() {
           </button>
         </div>
         <div className="profile local-profile">
-          <div className="avatar">S</div>
+          <div className="avatar">{auth.user?.email?.slice(0, 1).toUpperCase() || "S"}</div>
           <div>
-            <strong>Application Web</strong>
-            <small>Version {APP_VERSION} · PWA locale</small>
+            <strong>{auth.user?.email || "Mode local"}</strong>
+            <small>
+              Version {APP_VERSION} · {auth.user ? "Espace sécurisé" : "PWA locale"}
+            </small>
           </div>
         </div>
       </aside>
@@ -505,7 +509,7 @@ export default function App() {
         <header>
           <div className="header-context">
             <b>{active}</b>
-            <span>Données enregistrées localement</span>
+            <span>{auth.user ? "Compte connecté · données locales et espace business" : "Données enregistrées localement"}</span>
           </div>
           <button
             className="new-btn"
