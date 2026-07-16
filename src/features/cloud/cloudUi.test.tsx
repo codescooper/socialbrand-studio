@@ -4,6 +4,8 @@ import { DEFAULT_BRAND_KIT } from "../../constants/brandKitDefaults";
 import { AuthProvider, useAuth } from "./AuthProvider";
 import { CloudPage } from "./CloudPage";
 
+vi.mock("../../cloud/supabaseClient", () => ({ getSupabaseClient: () => null }));
+
 function Status() {
   const auth = useAuth();
   return <span>{auth.configured ? "configuré" : "local"}</span>;

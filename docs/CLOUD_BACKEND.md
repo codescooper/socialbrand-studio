@@ -39,13 +39,13 @@ Edge Functions uniquement :
 
 - `SOCIAL_TOKEN_ENCRYPTION_KEY` : clé AES de 32 octets encodée en base64 ;
 - `SOCIAL_TOKEN_KEY_VERSION` ;
-- `ALLOWED_RETURN_URLS` : origines exactes séparées par des virgules.
+- `ALLOWED_ORIGINS` : origines HTTP exactes séparées par des virgules, sans chemin ; par exemple `https://codescooper.github.io`.
 
 Ne jamais placer une clé `service_role`, un secret de fournisseur ou la clé de chiffrement dans une variable `VITE_*`.
 
 ## Environnements
 
-Créer trois projets Supabase séparés : développement, préproduction et production. Ne jamais réutiliser les clés de chiffrement ou les credentials fournisseurs entre environnements. Les URL GitHub Pages doivent être ajoutées explicitement aux URL Auth et à `ALLOWED_RETURN_URLS`.
+Créer trois projets Supabase séparés : développement, préproduction et production. Ne jamais réutiliser les clés de chiffrement ou les credentials fournisseurs entre environnements. Les URL GitHub Pages doivent être ajoutées explicitement aux URL Auth ; leur origine, sans chemin, doit être ajoutée à `ALLOWED_ORIGINS`.
 
 ## Installation locale
 
@@ -60,9 +60,16 @@ Créer trois projets Supabase séparés : développement, préproduction et prod
 1. Créer ou sélectionner le projet Supabase de l’environnement.
 2. Exécuter `npx supabase link --project-ref <ref>`.
 3. Contrôler les migrations avec `npx supabase db push --dry-run`, puis les appliquer.
-4. Définir les secrets Edge Functions avec `npx supabase secrets set --env-file <fichier-non-versionné>`.
+4. Définir les secrets Edge Functions avec `npx supabase secrets set --env-file <fichier-non-versionné>` ; `ALLOWED_ORIGINS` doit contenir les origines réelles du navigateur, sans chemin.
 5. Déployer `business-workspaces`.
 6. Configurer les deux variables publiques dans le build PWA.
+
+## Validation du déploiement
+
+- `npm run cloud:check` contrôle les neuf tables, leur RLS et l’absence de secrets serveur dans le frontend.
+- Une requête CORS `OPTIONS` depuis une origine autorisée doit répondre en 204 sans corps ; une origine inconnue doit être refusée en 403.
+- Les RPC `create_business_workspace` et `link_brand_kit` sont volontairement exécutables par `authenticated`. Elles valident `auth.uid()` et les rôles, utilisent un `search_path` vide et ne sont pas accordées à `anon` ou `public`.
+- Le test d’acceptation final utilise une adresse e-mail réelle : lien magique, création d’un espace, puis liaison d’un Brand Kit.
 
 ## Limites du Lot 5B
 

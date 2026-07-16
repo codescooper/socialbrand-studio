@@ -20,6 +20,11 @@ Format inspiré de Keep a Changelog. Le projet suit le versionnage sémantique.
 - Origines Edge Functions en liste blanche.
 - Rôles et isolation multi-business appliqués au niveau PostgreSQL.
 
+### Fixed
+
+- Réponse CORS `OPTIONS` conforme avec un statut 204 sans corps.
+- Build GitHub Pages raccordé aux variables publiques Supabase du dépôt.
+
 ## [0.3.0] - 2026-07-15
 
 ### Added

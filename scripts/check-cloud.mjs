@@ -18,6 +18,7 @@ const requiredTables = [
   "social_credentials",
   "oauth_states",
   "social_sync_jobs",
+  "security_audit_events",
 ];
 for (const table of requiredTables) {
   if (!migration.includes(`create table public.${table}`)) throw new Error(`Table cloud manquante : ${table}`);
