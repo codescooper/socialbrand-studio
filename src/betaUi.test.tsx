@@ -5,10 +5,15 @@ import { Onboarding } from "./components/Onboarding";
 import { HelpPage } from "./features/help/HelpPage";
 import { SocialPage } from "./features/social/SocialPage";
 import { DEFAULT_BRAND_KIT } from "./constants/brandKitDefaults";
+import { AuthProvider } from "./features/cloud/AuthProvider";
 
 describe("interface bêta", () => {
   it("affiche uniquement des modules réels dans la navigation", () => {
-    const html = renderToStaticMarkup(<App />);
+    const html = renderToStaticMarkup(
+      <AuthProvider>
+        <App />
+      </AuthProvider>,
+    );
     for (const label of ["Vue d&#x27;ensemble", "Projets", "Brand Kit", "Réseaux", "Produits", "Traitement par lot", "Exports", "Historique", "Paramètres", "Aide"])
       expect(html).toContain(label);
     expect(html).not.toContain("Templates");

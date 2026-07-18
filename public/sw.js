@@ -1,4 +1,4 @@
-const CACHE_NAME = "socialbrand-studio-pwa-v0.3.0";
+const CACHE_NAME = "socialbrand-studio-pwa-v0.4.0";
 const APP_SHELL = ["./", "./index.html", "./manifest.webmanifest", "./app-icon.svg", "./app-icon-192.png", "./app-icon-512.png"];
 
 self.addEventListener("install", (event) => {

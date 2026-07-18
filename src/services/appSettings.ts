@@ -1,7 +1,7 @@
 import { db } from "../db/database";
 import type { ExportType } from "./visualRenderer";
 
-export const APP_VERSION = "0.3.0";
+export const APP_VERSION = "0.4.0";
 export type AppPreferences = { defaultExportFormat: ExportType; defaultJpgQuality: number; batchConcurrency: 1 | 2 | 3 };
 export const DEFAULT_PREFERENCES: AppPreferences = { defaultExportFormat: "png", defaultJpgQuality: 0.9, batchConcurrency: 2 };
 

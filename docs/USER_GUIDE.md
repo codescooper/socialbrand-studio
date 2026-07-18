@@ -24,6 +24,10 @@ Dans **Traitement par lot**, ajoutez jusqu’à 50 images et 200 Mo, choisissez 
 
 Les profils restent liés au Brand Kit sélectionné. Aucun mot de passe ou jeton n’est demandé et aucune connexion API n’est réalisée dans cette version. Les statistiques affichent **Données indisponibles** tant qu’aucun snapshot réel n’existe.
 
+## Compte et espaces business
+
+Ouvrez **Compte** pour activer les fonctions cloud. Si le backend n’est pas configuré, l’application l’indique sans bloquer les fonctions locales. Une fois configuré, saisissez votre e-mail pour recevoir un lien de connexion, créez un espace business puis liez-y le Brand Kit actif. Ne partagez jamais un lien de connexion ni un jeton de session.
+
 ## Sauvegarder ses données
 
 Dans **Paramètres**, utilisez **Sauvegarder mes données**. La restauration peut fusionner ou remplacer ; le remplacement demande deux confirmations. Sauvegardez impérativement avant de vider les données du navigateur, changer de profil, de domaine ou d’appareil.

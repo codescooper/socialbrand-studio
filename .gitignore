@@ -6,3 +6,6 @@ coverage/
 .desktop-dev*.log
 .desktop-dev*.err.log
 *.tsbuildinfo
+.env
+.env.*
+!.env.example
