@@ -30,18 +30,6 @@ npm ci
 npm run dev
 ```
 
-Sous Windows, `npm run dev` reste attaché au terminal. Pour garder le serveur de test actif après la fermeture du terminal ou de Codex, utilisez :
-
-```bash
-npm run local:start
-```
-
-Le lanceur ouvre `http://127.0.0.1:1420/` et conserve le serveur en arrière-plan. Pour l’arrêter proprement :
-
-```bash
-npm run local:stop
-```
-
 Contrôles et builds :
 
 ```bash

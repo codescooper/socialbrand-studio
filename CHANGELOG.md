@@ -24,7 +24,6 @@ Format inspiré de Keep a Changelog. Le projet suit le versionnage sémantique.
 
 - Réponse CORS `OPTIONS` conforme avec un statut 204 sans corps.
 - Build GitHub Pages raccordé aux variables publiques Supabase du dépôt.
-- Lanceur Windows indépendant pour conserver le serveur local après la fermeture du terminal ou de Codex.
 
 ### Changed
 
